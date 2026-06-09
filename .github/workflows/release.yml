@@ -31,13 +31,14 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Download ffprobe binary
-        shell: bash
+      - name: Download ffprobe/ffmpeg binaries
+        shell: powershell
         run: |
-          mkdir -p src-tauri/binaries
-          # Download ffprobe for Windows x86_64
-          npm exec --yes -- ffprobe-static
-          cp node_modules/ffprobe-static/bin/win32/x64/ffprobe.exe src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe
+          New-Item -ItemType Directory -Force -Path src-tauri/binaries
+          $ffprobePath = node -e "console.log(require('ffprobe-static').path)"
+          $ffmpegPath = node -e "console.log(require('ffmpeg-static'))"
+          Copy-Item $ffprobePath "src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe"
+          Copy-Item $ffmpegPath "src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe"
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
