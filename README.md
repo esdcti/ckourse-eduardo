@@ -164,6 +164,12 @@ MIT — livre para usar, modificar e distribuir.
 
 ---
 
+## Créditos
+
+Fork do projeto [Ckourse](https://github.com/redaantar/ckourse) por Reda Antar, licenciado sob MIT.
+
+---
+
 ## Links
 
 - 🐛 Issues: [github.com/esdcti/ckourse-eduardo/issues](https://github.com/esdcti/ckourse-eduardo/issues)
