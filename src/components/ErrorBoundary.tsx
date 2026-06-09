@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="flex h-screen items-center justify-center">
-          <p className="text-muted-foreground text-sm">Something went wrong.</p>
+          <p className="text-muted-foreground text-sm">Algo deu errado. / Something went wrong.</p>
         </div>
       );
     }

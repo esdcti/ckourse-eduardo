@@ -37,6 +37,7 @@ export function NoteEditor({
   onCancel,
   className,
 }: NoteEditorProps) {
+  const t = useI18n();
   const editorRef = useRef<HTMLDivElement>(null);
   const videoTimeRef = useRef(videoTime);
   const [menu, setMenu] = useState<{
@@ -133,7 +134,7 @@ export function NoteEditor({
     if ("current".startsWith(query.toLowerCase()) || query === "") {
       suggestions.push({
         label: `@${currentLabel}`,
-        description: "Current time",
+        description: t.currentTime,
         seconds: time,
       });
     }
@@ -144,7 +145,7 @@ export function NoteEditor({
       if (parsed !== null && parsed !== time) {
         suggestions.push({
           label: `@${formatTimestamp(parsed)}`,
-          description: "Go to time",
+          description: t.goToTime,
           seconds: parsed,
         });
       }
@@ -316,10 +317,10 @@ export function NoteEditor({
   const suggestions = menu ? getSuggestions(menu.query) : [];
 
   const toolbarButtons = [
-    { command: "bold", icon: TextBolder, label: "Bold" },
-    { command: "italic", icon: TextItalic, label: "Italic" },
-    { command: "underline", icon: TextUnderline, label: "Underline" },
-    { command: "strikeThrough", icon: TextStrikethrough, label: "Strikethrough" },
+    { command: "bold", icon: TextBolder, label: t.bold },
+    { command: "italic", icon: TextItalic, label: t.italic },
+    { command: "underline", icon: TextUnderline, label: t.underline },
+    { command: "strikeThrough", icon: TextStrikethrough, label: t.strikethrough },
   ];
 
   return (
@@ -345,7 +346,7 @@ export function NoteEditor({
         ))}
 
         <span className="ml-2 font-mono text-[10px] text-muted-foreground/40">
-          Type <span className="text-muted-foreground/60">@</span> to tag time
+          {t.typeAtToTag}
         </span>
       </div>
 
@@ -355,7 +356,7 @@ export function NoteEditor({
           contentEditable
           onInput={handleInput}
           onKeyDown={handleKeyDown}
-          data-placeholder="Write a note..."
+          data-placeholder={t.writeANote}
           className="note-editable min-h-18 w-full px-3 pt-2.5 pb-2 font-sans text-xs leading-relaxed text-foreground focus:outline-none"
         />
 
@@ -416,7 +417,7 @@ export function NoteEditor({
           style={{ transitionTimingFunction: SNAPPY }}
         >
           <PaperPlaneTilt className="size-3.5" weight="fill" />
-          Save
+          {t.save}
         </button>
       </div>
     </div>

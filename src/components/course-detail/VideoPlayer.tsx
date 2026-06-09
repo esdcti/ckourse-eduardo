@@ -903,16 +903,16 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
             )}
           </ControlButton>
 
-          <ControlButton onClick={skipBackward} tooltip="Back 10s (J)">
+          <ControlButton onClick={skipBackward} tooltip={t.tooltipBack}>
             <CounterClockwise className="size-4" weight="bold" />
           </ControlButton>
 
-          <ControlButton onClick={skipForward} tooltip="Forward 10s (L)">
+          <ControlButton onClick={skipForward} tooltip={t.tooltipForward}>
             <Clockwise className="size-4" weight="bold" />
           </ControlButton>
 
           {hasNext && (
-            <ControlButton onClick={onNext} tooltip="Next lesson">
+            <ControlButton onClick={onNext} tooltip={t.tooltipNextLesson}>
               <SkipForward className="size-4" weight="fill" />
             </ControlButton>
           )}
@@ -962,7 +962,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                 setShowSpeedMenu((s) => !s);
                 setShowSubtitleMenu(false);
               }}
-              tooltip="Playback speed"
+              tooltip={t.tooltipSpeed}
               active={playbackSpeed !== 1}
             >
               {playbackSpeed !== 1 ? (
@@ -1011,7 +1011,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                   });
                   setShowSpeedMenu(false);
                 }}
-                tooltip="Subtitles (C)"
+                tooltip={t.tooltipSubtitles}
                 active={activeSubtitleIdx >= 0}
               >
                 <Subtitles className="size-4" />
@@ -1151,7 +1151,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
             </div>
           )}
 
-          <ControlButton onClick={togglePiP} tooltip="Picture-in-Picture (P)">
+          <ControlButton onClick={togglePiP} tooltip={t.tooltipPiP}>
             <PictureInPicture className="size-4" />
           </ControlButton>
 

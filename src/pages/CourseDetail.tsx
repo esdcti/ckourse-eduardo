@@ -491,7 +491,7 @@ function CourseDetailInner({
         setPendingTimestampNav({
           seconds,
           lessonId,
-          lessonTitle: targetLesson?.title ?? "another lesson",
+          lessonTitle: targetLesson?.title ?? t.anotherLesson,
         });
       }
     },
@@ -843,14 +843,14 @@ function CourseDetailInner({
                 className="rounded-lg px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 style={{ transitionTimingFunction: SNAPPY }}
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 onClick={confirmTimestampNav}
                 className="rounded-lg bg-primary px-3 py-1.5 font-sans text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 style={{ transitionTimingFunction: SNAPPY }}
               >
-                Switch & Jump
+                {t.goToLesson}
               </button>
             </div>
           </div>

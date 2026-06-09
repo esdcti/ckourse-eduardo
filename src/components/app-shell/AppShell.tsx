@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { AnimatedThemeToggler } from "@/components/ui/animatedThemeToggle";
+import { useI18n } from "@/lib/i18n";
 import logoDark from "@/assets/icons/logo-dark.svg";
 import logoLight from "@/assets/icons/logo-light.svg";
 import { spring, navigationItems, appItems } from "./constants";
@@ -33,6 +34,7 @@ export function AppShell({ children }: AppShellProps) {
 function AppShellInner({ children }: AppShellProps) {
   const { theme } = useTheme();
   const breadcrumbs = useBreadcrumbs();
+  const t = useI18n();
   const logo = theme === "light" ? logoLight : logoDark;
   const [collapsed, setCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
@@ -196,9 +198,9 @@ function AppShellInner({ children }: AppShellProps) {
           </div>
 
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pt-4">
-            <NavSection label="Navigation" collapsed={effectiveCollapsed} items={navigationItems} />
+            <NavSection label={t.navigation} collapsed={effectiveCollapsed} items={navigationItems} />
             <div className="mx-3 my-3 border-t border-sidebar-border/50" />
-            <NavSection label="App" collapsed={effectiveCollapsed} items={appItems} />
+            <NavSection label={t.app} collapsed={effectiveCollapsed} items={appItems} />
           </nav>
 
           <div className="mx-3 mb-4 mt-auto h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
