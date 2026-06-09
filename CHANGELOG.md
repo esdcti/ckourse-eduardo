@@ -6,6 +6,13 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ---
 
+## [1.2.1] - 2026-06-09
+
+### Corrigido
+- Variável não utilizada (`sortLabels`) que impedia a compilação do TypeScript
+
+---
+
 ## [1.2.0] - 2026-06-09
 
 ### Adicionado
