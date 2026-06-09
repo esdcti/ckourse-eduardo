@@ -5,4 +5,5 @@ export interface AppSettings {
   default_volume: number;
   skip_forward_secs: number;
   skip_backward_secs: number;
+  locale: string;
 }

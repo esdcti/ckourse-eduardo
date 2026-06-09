@@ -17,6 +17,7 @@ import {
   useStartupUpdateCheck,
 } from "@/hooks/useUpdater";
 import { UpdateBanner } from "@/components/UpdateBanner";
+import { I18nContext, getTranslations, type Locale } from "@/lib/i18n";
 
 function routeKey(pathname: string, search: string): string {
   if (pathname.startsWith("/course/")) {
@@ -104,14 +105,18 @@ function App() {
   const updaterCtx = useUpdaterProvider();
   useStartupUpdateCheck(updaterCtx);
 
+  const t = getTranslations(settingsCtx.settings.locale as Locale);
+
   return (
     <SettingsContext.Provider value={settingsCtx}>
-      <UpdaterContext.Provider value={updaterCtx}>
-        <AppShell>
-          <KeepAliveRoutes />
-        </AppShell>
-        <UpdateBanner />
-      </UpdaterContext.Provider>
+      <I18nContext.Provider value={t}>
+        <UpdaterContext.Provider value={updaterCtx}>
+          <AppShell>
+            <KeepAliveRoutes />
+          </AppShell>
+          <UpdateBanner />
+        </UpdaterContext.Provider>
+      </I18nContext.Provider>
     </SettingsContext.Provider>
   );
 }

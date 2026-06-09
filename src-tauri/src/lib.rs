@@ -1,6 +1,7 @@
 mod commands;
 mod db;
 mod parser;
+mod portable;
 mod subtitle;
 mod video_protocol;
 
@@ -16,16 +17,23 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
-            let app_data_dir = app
-                .path()
-                .app_data_dir()
-                .expect("failed to resolve app data dir");
+            let data_dir = if let Some(portable_dir) = portable::get_portable_dir() {
+                portable_dir
+            } else {
+                app.path()
+                    .app_data_dir()
+                    .expect("failed to resolve app data dir")
+            };
 
-            let conn = db::init_db(&app_data_dir).expect("failed to initialize database");
+            let is_portable = portable::is_portable();
+
+            let conn = db::init_db(&data_dir).expect("failed to initialize database");
 
             app.manage(DbState {
                 conn: std::sync::Mutex::new(conn),
             });
+
+            app.manage(portable::PortableState { is_portable, data_dir });
 
             Ok(())
         })
@@ -63,6 +71,7 @@ pub fn run() {
             commands::add_custom_category,
             commands::delete_custom_category,
             commands::search_content,
+            commands::get_portable_info,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

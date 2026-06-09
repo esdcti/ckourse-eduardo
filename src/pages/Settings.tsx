@@ -27,6 +27,8 @@ import { getLibraryStats, deleteAllData } from "@/lib/store";
 import { EASE_OUT } from "@/lib/constants";
 import { useUpdater } from "@/hooks/useUpdater";
 import { getVersion } from "@tauri-apps/api/app";
+import { useI18n } from "@/lib/i18n";
+import { LOCALES } from "@/lib/i18n";
 
 interface ToggleProps {
   checked: boolean;
@@ -364,6 +366,7 @@ export function Settings({ className }: SettingsProps) {
   const [stats, setStats] = useState<LibraryStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const t = useI18n();
 
   const loadStats = useCallback(() => {
     return getLibraryStats().then(setStats);
@@ -400,23 +403,41 @@ export function Settings({ className }: SettingsProps) {
           <GearSix className="size-5 text-primary" weight="bold" />
         </div>
         <div>
-          <h2 className="font-heading text-2xl font-bold text-foreground">Settings</h2>
+          <h2 className="font-heading text-2xl font-bold text-foreground">{t.settings}</h2>
           <p className="font-sans text-sm text-muted-foreground">
-            Configure your learning experience
+            {t.configureExperience}
           </p>
         </div>
       </div>
 
       <div className="flex flex-col gap-4">
         <SectionCard
-          title="Playback"
-          icon={<Play className="size-4 text-primary" weight="bold" />}
+          title={t.language}
+          icon={<GearSix className="size-4 text-primary" weight="bold" />}
           index={0}
         >
           <SettingRow
+            icon={<GearSix className="size-4" />}
+            label={t.language}
+            description={t.languageDesc}
+          >
+            <Select
+              value={settings.locale}
+              onChange={(v) => update("locale", v)}
+              options={LOCALES.map((l) => ({ value: l.value, label: l.label }))}
+            />
+          </SettingRow>
+        </SectionCard>
+
+        <SectionCard
+          title={t.playback}
+          icon={<Play className="size-4 text-primary" weight="bold" />}
+          index={1}
+        >
+          <SettingRow
             icon={<SkipForward className="size-4" />}
-            label="Autoplay next lesson"
-            description="Automatically play the next lesson when one finishes"
+            label={t.autoplayNext}
+            description={t.autoplayNextDesc}
           >
             <Toggle
               checked={settings.autoplay_next}
@@ -425,8 +446,8 @@ export function Settings({ className }: SettingsProps) {
           </SettingRow>
           <SettingRow
             icon={<ArrowsClockwise className="size-4" />}
-            label="Resume from last position"
-            description="Continue videos from where you left off"
+            label={t.resumePosition}
+            description={t.resumePositionDesc}
           >
             <Toggle
               checked={settings.resume_position}
@@ -435,7 +456,7 @@ export function Settings({ className }: SettingsProps) {
           </SettingRow>
           <SettingRow
             icon={<FastForward className="size-4" />}
-            label="Default playback speed"
+            label={t.defaultSpeed}
           >
             <Select
               value={String(settings.default_speed)}
@@ -445,7 +466,7 @@ export function Settings({ className }: SettingsProps) {
           </SettingRow>
           <SettingRow
             icon={<SpeakerHigh className="size-4" />}
-            label="Default volume"
+            label={t.defaultVolume}
           >
             <div className="flex items-center gap-2.5">
               <input
@@ -463,7 +484,7 @@ export function Settings({ className }: SettingsProps) {
           </SettingRow>
           <SettingRow
             icon={<MonitorPlay className="size-4" />}
-            label="Skip forward / backward"
+            label={t.skipForwardBackward}
           >
             <Select
               value={String(settings.skip_forward_secs)}
@@ -477,9 +498,9 @@ export function Settings({ className }: SettingsProps) {
         </SectionCard>
 
         <SectionCard
-          title="Library"
+          title={t.library}
           icon={<Database className="size-4 text-info" weight="bold" />}
-          index={1}
+          index={2}
         >
           {stats && (
             <div className="grid grid-cols-3 gap-2.5">
@@ -516,19 +537,19 @@ export function Settings({ className }: SettingsProps) {
             </div>
           )}
           <div className="mt-3 rounded-lg bg-secondary/50 px-3 py-2.5">
-            <div className="font-sans text-xs text-muted-foreground">Database location</div>
+            <div className="font-sans text-xs text-muted-foreground">{t.databaseLocation}</div>
             <div className="mt-0.5 truncate font-mono text-xs text-foreground/70">
               {stats?.dbPath}
             </div>
           </div>
         </SectionCard>
 
-        <UpdatesSection index={2} />
+        <UpdatesSection index={3} />
 
         <SectionCard
-          title="Danger Zone"
+          title={t.dangerZone}
           icon={<WarningCircle className="size-4 text-destructive" weight="bold" />}
-          index={3}
+          index={4}
         >
           <div className="flex items-center justify-between gap-4 rounded-lg px-2 py-3">
             <div className="flex items-center gap-3">
@@ -537,10 +558,10 @@ export function Settings({ className }: SettingsProps) {
               </div>
               <div>
                 <div className="font-sans text-sm font-medium text-foreground">
-                  Delete all data
+                  {t.deleteAllData}
                 </div>
                 <div className="font-sans text-xs text-muted-foreground">
-                  Permanently remove all courses, progress, notes, and settings
+                  {t.deleteAllDataDesc}
                 </div>
               </div>
             </div>

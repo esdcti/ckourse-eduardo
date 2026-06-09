@@ -9,6 +9,7 @@ const DEFAULTS: AppSettings = {
   default_volume: 100,
   skip_forward_secs: 10,
   skip_backward_secs: 10,
+  locale: "pt-BR",
 };
 
 function parse(raw: Record<string, string>): AppSettings {
@@ -19,6 +20,7 @@ function parse(raw: Record<string, string>): AppSettings {
     default_volume: Number(raw.default_volume) || 100,
     skip_forward_secs: Number(raw.skip_forward_secs) || 10,
     skip_backward_secs: Number(raw.skip_backward_secs) || 10,
+    locale: raw.locale || "pt-BR",
   };
 }
 

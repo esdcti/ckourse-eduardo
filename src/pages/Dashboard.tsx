@@ -18,6 +18,7 @@ import { SquircleButton } from "@/components/ui/SquircleButton";
 import type { Course, DashboardStats, CourseCategory, CourseStatus } from "@/types";
 import { getCourses, getDashboardStats } from "@/lib/store";
 import { EASE, EASE_OUT } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 
 type SortOption = "recent" | "progress" | "title";
 
@@ -61,6 +62,7 @@ export function Dashboard({ className }: DashboardProps) {
   const [loadError, setLoadError] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   const [filterHeight, setFilterHeight] = useState(0);
+  const t = useI18n();
 
   // Derive filter state from URL search params
   const search = searchParams.get("q") ?? "";
@@ -196,12 +198,12 @@ export function Dashboard({ className }: DashboardProps) {
   if (loadError) {
     return (
       <div className={cn("mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-32", className)}>
-        <p className="font-sans text-sm text-muted-foreground">Failed to load your library.</p>
+        <p className="font-sans text-sm text-muted-foreground">{t.failedToLoad}</p>
         <button
           onClick={() => loadCourses(true)}
           className="font-sans text-xs font-medium text-primary transition-colors hover:text-primary/80"
         >
-          Try again
+          {t.tryAgain}
         </button>
       </div>
     );
@@ -223,7 +225,7 @@ export function Dashboard({ className }: DashboardProps) {
         <SquircleSearch
           value={search}
           onChange={setSearch}
-          placeholder="Search courses..."
+          placeholder={t.searchCourses}
           className="flex-1"
         />
 
@@ -239,12 +241,12 @@ export function Dashboard({ className }: DashboardProps) {
               transition: `transform 500ms ${EASE}`,
             }}
           />
-          Filters
+          {t.filters}
         </SquircleButton>
 
         <SquircleButton variant="primary" onClick={() => navigate("/import")}>
           <Plus className="size-4" weight="bold" />
-          Import Course
+          {t.importCourse}
         </SquircleButton>
       </div>
 
@@ -330,10 +332,10 @@ export function Dashboard({ className }: DashboardProps) {
 
       <div className="mb-6 flex items-baseline justify-between">
         <h2 className="font-heading text-2xl font-bold text-foreground">
-          Your Library
+          {t.yourLibrary}
         </h2>
         <span className="font-mono text-sm font-medium text-muted-foreground">
-          {filteredCourses.length} {filteredCourses.length === 1 ? "course" : "courses"}
+          {filteredCourses.length} {filteredCourses.length === 1 ? t.course : t.courses.toLowerCase()}
         </span>
       </div>
 
@@ -359,7 +361,7 @@ export function Dashboard({ className }: DashboardProps) {
         >
           <MagnifyingGlass className="size-10 text-muted-foreground/50" />
           <p className="font-sans text-sm text-muted-foreground">
-            No courses match your filters.
+            {t.noCoursesMatch}
           </p>
           <button
             onClick={() => {
@@ -367,7 +369,7 @@ export function Dashboard({ className }: DashboardProps) {
             }}
             className="font-sans text-xs font-medium text-primary transition-colors hover:text-primary/80"
           >
-            Clear all filters
+            {t.clearAllFilters}
           </button>
         </div>
       )}

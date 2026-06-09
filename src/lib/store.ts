@@ -174,3 +174,12 @@ export async function deleteCustomCategory(name: string): Promise<void> {
 export async function searchContent(query: string): Promise<SearchResult[]> {
   return invoke<SearchResult[]>("search_content", { query });
 }
+
+export interface PortableInfo {
+  isPortable: boolean;
+  dataDir: string;
+}
+
+export async function getPortableInfo(): Promise<PortableInfo> {
+  return invoke<PortableInfo>("get_portable_info");
+}

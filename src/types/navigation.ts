@@ -2,6 +2,7 @@ export interface NavItem {
   icon: React.ElementType;
   label: string;
   path: string;
+  i18nKey?: string;
 }
 
 export interface BreadcrumbItem {
