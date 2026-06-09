@@ -18,7 +18,7 @@ Seu media player não sabe o que "Seção 4 - Aula 12" significa. Seu gerenciado
 
 ## Funcionalidades
 
-### ✅ v1 — Core
+### ✅ v1.1 — Atual
 - 📁 **Importação inteligente de pastas** — aponte o Ckourse para qualquer pasta de curso e ele analisa a estrutura automaticamente, detectando seções, aulas, legendas e anexos
 - ▶️ **Player de vídeo integrado** — player HTML5 nativo com suporte a legendas, autoplay e navegação por timestamp
 - 📊 **Rastreamento de progresso** — conclusão por aula, barra de progresso por curso, retome exatamente de onde parou
@@ -27,10 +27,17 @@ Seu media player não sabe o que "Seção 4 - Aula 12" significa. Seu gerenciado
 - 🗂️ **Biblioteca de cursos** — um dashboard limpo com todos os cursos importados e progresso visível
 - 🎉 **Celebração de conclusão** — animação de partículas em canvas quando você termina um curso
 - 🌙 **Temas** — claro, escuro e sincronizado com o sistema
+- 🌐 **Interface em Português (BR)** — sistema de i18n com suporte a pt-BR e inglês, selecionável nas configurações
+- 💾 **Modo Portátil** — rode do pen drive/cartão de memória com dados salvos junto ao app (basta criar um arquivo `.portable` ao lado do executável)
+- 🔄 **Auto-updater** — receba atualizações automaticamente sem precisar baixar manualmente
+- 🔍 **Busca global** — busque em cursos e aulas pelo nome
 
-### 🚧 v2 — Planejado
-- 📄 **Visualizador de PDF/recursos** — leia anexos do curso sem sair do app
-- 🔍 **Busca** — busque em todos os cursos, aulas e suas notas pessoais
+### 🚧 v1.2 — Próxima
+- ⌨️ **Atalhos de teclado** — controle total pelo teclado
+- 🏷️ **Tags customizadas** — organize por tecnologia (React, Docker, AWS...)
+- 📄 **Visualizador de PDF** — leia anexos sem sair do app
+- 🎯 **Meta diária de estudo** — streak e consistência
+- 📌 **Marcadores no vídeo** — bookmarks de timestamp para revisão rápida
 
 ---
 
@@ -147,6 +154,26 @@ ckourse/
 │   └── tauri.conf.json       # Configuração do Tauri
 └── public/                   # Assets estáticos
 ```
+
+---
+
+## Modo Portátil (Pen Drive / Cartão de Memória)
+
+Quer levar seus cursos e progresso para qualquer computador? Use o modo portátil:
+
+1. Copie o `ckourse.exe` para o pen drive/cartão de memória
+2. Crie um arquivo vazio chamado `.portable` na mesma pasta do executável
+3. Pronto — ao abrir, o banco de dados será salvo em `./data/` ao lado do app
+
+```
+E:\Ckourse\
+├── ckourse.exe
+├── .portable          ← arquivo vazio que ativa o modo
+└── data\
+    └── ckourse.db     ← criado automaticamente
+```
+
+Seus cursos podem estar em qualquer pasta do cartão. O progresso, notas e configurações viajam com você.
 
 ---
 

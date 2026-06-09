@@ -1,91 +1,96 @@
 # Roadmap — Ckourse
 
-Plano de evolução do Ckourse, organizado por complexidade de implementação.
+Plano de evolução focado em uso para **cursos de TI** (programação, DevOps, cloud, banco de dados, design de sistemas).
 
 ---
 
-## 🟢 Baixa Complexidade
+## 🟢 Baixa Complexidade (1-2 dias cada)
 
-Melhorias rápidas que agregam valor imediato com pouco esforço.
+Melhorias rápidas com impacto direto na experiência diária de estudo.
 
-| # | Feature | Descrição |
-|---|---------|-----------|
-| 1 | **Atalhos de teclado** | Implementar hotkeys globais para play/pause, próxima aula, aula anterior, pular 10s, marcar como concluída |
-| 2 | **Modo Picture-in-Picture** | Permitir assistir em janela flutuante enquanto usa outros apps |
-| 3 | **Indicador de duração total** | Mostrar tempo total do curso e tempo restante estimado no dashboard |
-| 4 | **Filtros na biblioteca** | Filtrar cursos por categoria, status (em progresso, concluído, não iniciado) |
-| 5 | **Ordenação de cursos** | Ordenar por nome, data de importação, progresso, último assistido |
-| 6 | **Marcar aula como concluída sem assistir** | Botão para pular aulas que já conhece o conteúdo |
-| 7 | **Confirmação de saída durante reprodução** | Avisar antes de fechar o app se um vídeo está sendo reproduzido |
-| 8 | **Tooltip de progresso no card** | Mostrar "X de Y aulas" ao passar o mouse no card do curso |
-| 9 | **Exportar notas como Markdown** | Gerar arquivo .md com todas as notas de um curso |
-| 10 | **Idioma da interface (i18n)** | Suporte a português e inglês com seleção nas configurações |
-
----
-
-## 🟡 Média Complexidade
-
-Features que envolvem mais lógica ou integração entre camadas.
-
-| # | Feature | Descrição |
-|---|---------|-----------|
-| 11 | **Banco de dados portátil** | Opção de salvar o banco SQLite junto com os cursos (no cartão de memória/pen drive) para carregar progresso entre computadores |
-| 12 | **Visualizador de PDF integrado** | Renderizar PDFs e documentos de recurso sem abrir app externo |
-| 13 | **Busca global com preview** | Buscar em cursos, aulas e notas com preview do conteúdo encontrado |
-| 14 | **Velocidade por curso** | Lembrar velocidade de playback preferida para cada curso individual |
-| 15 | **Tags personalizadas** | Sistema de tags livre para organizar cursos além das categorias |
-| 16 | **Histórico de atividade** | Timeline mostrando aulas assistidas por dia com heatmap estilo GitHub |
-| 17 | **Meta diária de estudo** | Definir meta de minutos/aulas por dia com notificações e streak |
-| 18 | **Import/Export de dados** | Exportar e importar todo o banco (cursos, progresso, notas) como JSON para backup ou migração |
-| 19 | **Arrastar para reordenar cursos** | Permitir organização manual da ordem dos cursos na biblioteca |
-| 20 | **Detecção de novos vídeos** | Verificar se novos vídeos foram adicionados à pasta e oferecer re-scan |
-| 21 | **Playlists/filas de estudo** | Criar listas de reprodução customizadas misturando aulas de diferentes cursos |
-| 22 | **Modo foco** | Ocultar UI desnecessária durante a reprodução, sidebar auto-hide |
-| 23 | **Suporte a áudio-only** | Permitir importar cursos que são apenas podcasts/audiobooks (mp3, m4a) |
-| 24 | **Marcadores no vídeo** | Marcar pontos específicos do vídeo para revisão rápida (bookmarks de timestamp) |
+| # | Feature | Por quê? |
+|---|---------|----------|
+| 1 | **Atalhos de teclado** | Estudar sem tirar a mão do teclado: espaço (play/pause), N (próxima), P (anterior), F (fullscreen), M (mute), ←→ (skip 10s) |
+| 2 | **Exportar notas como Markdown** | Levar suas anotações pro Obsidian, Notion ou qualquer editor. Inclui timestamps como links |
+| 3 | **Indicador de tempo restante** | No dashboard, mostrar "~2h30 restantes" por curso — ajuda a planejar sessões de estudo |
+| 4 | **Filtro por status na sidebar** | Ver só cursos "Em Progresso" rapidamente sem abrir filtros |
+| 5 | **Marcar aula sem assistir** | Você já sabe HTML básico? Pula as aulas introdutórias marcando como concluída |
+| 6 | **Tema por curso** | Cor de destaque personalizada para identificar visualmente cada curso no dashboard |
+| 7 | **Tooltip de progresso** | Hover no card mostra "42 de 120 aulas • ~18h restantes" |
+| 8 | **Copiar trecho da nota** | Botão para copiar snippet de código da nota direto pro clipboard |
+| 9 | **Velocidade salva por curso** | Assistir Python a 1.5x e AWS a 1x sem ficar ajustando toda vez |
+| 10 | **Modo Picture-in-Picture** | Assistir aula em janela flutuante enquanto pratica código no VS Code |
 
 ---
 
-## 🔴 Alta Complexidade
+## 🟡 Média Complexidade (3-7 dias cada)
 
-Features que exigem trabalho significativo de arquitetura, UI ou infraestrutura.
+Features que envolvem mais lógica mas resolvem dores reais de quem estuda TI.
 
-| # | Feature | Descrição |
-|---|---------|-----------|
-| 25 | **Modo portátil completo** | Executar o app direto de pen drive/cartão de memória sem instalação, com dados salvos no mesmo diretório |
-| 26 | **Sincronização entre dispositivos** | Sincronizar progresso e notas entre múltiplos computadores (via pasta compartilhada, OneDrive, Google Drive, ou servidor próprio) |
-| 27 | **Geração de resumo com IA** | Gerar resumo automático das aulas usando transcrição de legendas + LLM local (Ollama) ou API |
-| 28 | **Quiz/flashcards** | Criar perguntas de revisão baseadas nas notas ou geradas por IA para reforço de aprendizado |
-| 29 | **Transcrição automática** | Usar Whisper (local) para gerar legendas automaticamente em vídeos sem legenda |
-| 30 | **Versão mobile companion** | App mobile (Android/iOS) que mostra progresso e permite assistir cursos sincronizados |
-| 31 | **Capítulos inteligentes** | Detectar automaticamente mudanças de tópico no vídeo e criar marcadores de capítulo |
-| 32 | **Plugin system** | Arquitetura extensível para plugins da comunidade (temas, integrações, parsers customizados) |
-| 33 | **Certificados de conclusão** | Gerar certificado PDF personalizável ao concluir um curso |
-| 34 | **Leitor de código integrado** | Syntax highlighting para arquivos de código de recurso com navegação inline |
-| 35 | **Suporte a cursos online (download)** | Integração com yt-dlp para baixar e importar playlists do YouTube diretamente |
-| 36 | **Gamificação** | Sistema de XP, níveis, conquistas e badges para motivar estudo consistente |
-| 37 | **Multi-janela** | Abrir múltiplos cursos em janelas separadas simultaneamente |
-| 38 | **Modo colaborativo** | Compartilhar notas e progresso com outros estudantes do mesmo curso via link |
+| # | Feature | Por quê? |
+|---|---------|----------|
+| 11 | **Banco de dados portátil (completo)** | Exportar/importar o banco junto com os cursos — migrar entre PCs sem perder progresso |
+| 12 | **Visualizador de PDF integrado** | Ler slides, cheatsheets e documentação sem sair do app |
+| 13 | **Tags customizadas** | Organizar por tech: "React", "Docker", "SQL", "AWS" — mais útil que categorias genéricas |
+| 14 | **Meta diária de estudo** | "Estudar 45min/dia" com streak e notificação — consistência > intensidade |
+| 15 | **Histórico com heatmap** | Visualizar atividade estilo GitHub — quais dias você estudou, quantas aulas |
+| 16 | **Detecção de novos vídeos** | Baixou aulas novas na pasta? O app detecta e oferece adicionar ao curso |
+| 17 | **Busca dentro das notas** | "Onde eu anotei sobre docker-compose?" — busca full-text nas suas notas |
+| 18 | **Marcadores no vídeo** | Bookmarks de timestamp: "05:23 - Explicação de useEffect" — navega direto ao ponto |
+| 19 | **Playlists de revisão** | Juntar aulas específicas de diferentes cursos: "Revisar: Hooks + Context + Redux" |
+| 20 | **Modo foco** | Oculta sidebar, mostra só vídeo + notas. Ideal pra monitor pequeno |
+| 21 | **Importar playlist do YouTube** | Integração com yt-dlp para baixar playlist e importar como curso automaticamente |
+| 22 | **Suporte a áudio** | Importar podcasts técnicos (mp3) como "cursos" — útil pra audiobooks e tech talks |
 
 ---
 
-## Prioridade Sugerida
+## 🔴 Alta Complexidade (1-3 semanas cada)
 
-Para a próxima versão (v1.1), as features com maior impacto imediato:
+Features ambiciosas que transformam o app numa plataforma completa de estudo.
 
-1. **Banco de dados portátil** (#11) — resolve a portabilidade entre máquinas
-2. **Atalhos de teclado** (#1) — melhoria de UX fundamental
-3. **Exportar notas como Markdown** (#9) — valor imediato sem complexidade
-4. **i18n** (#10) — abre o app para mais usuários
-5. **Filtros e ordenação** (#4, #5) — essencial conforme a biblioteca cresce
+| # | Feature | Por quê? |
+|---|---------|----------|
+| 23 | **Transcrição automática com Whisper** | Gerar legendas localmente para cursos sem legenda — pesquisar conteúdo falado |
+| 24 | **Resumo com IA local (Ollama)** | Resumir aula automaticamente a partir da transcrição. Revisão em 2 min em vez de 45 |
+| 25 | **Flashcards de revisão** | Gerar cards de revisão a partir das notas. Algoritmo de repetição espaçada |
+| 26 | **Leitor de código integrado** | Abrir arquivos de código-fonte do curso com syntax highlighting + copy |
+| 27 | **Sincronização entre devices** | Progresso sincronizado via pasta na nuvem (OneDrive/Drive) ou servidor |
+| 28 | **Certificados de conclusão** | Gerar PDF bonito ao terminar curso — útil para documentação pessoal |
+| 29 | **Gamificação** | XP, níveis, conquistas ("Maratonista: 10 aulas em 1 dia", "Consistente: 30 dias seguidos") |
+| 30 | **Plugin de integração com IDE** | Extensão VS Code que mostra progresso do curso e permite marcar aulas como concluídas |
 
 ---
 
-## Como Contribuir
+## Prioridade para v1.2.0
 
-Se quiser trabalhar em alguma dessas features:
-1. Abra uma issue mencionando qual feature pretende implementar
-2. Discuta a abordagem antes de começar
-3. Siga as convenções em [CONTRIBUTING.md](CONTRIBUTING.md)
+Baseado no uso para cursos de TI, as próximas features mais impactantes:
 
-Sugestões de novas features são bem-vindas via issues!
+1. **Atalhos de teclado** (#1) — produtividade imediata
+2. **Velocidade salva por curso** (#9) — cada curso tem ritmo diferente
+3. **Exportar notas como Markdown** (#2) — integra com workflow de estudo
+4. **Marcadores no vídeo** (#18) — revisar pontos-chave sem reassistir tudo
+5. **Meta diária** (#14) — consistência é o que faz a diferença
+
+---
+
+## Prioridade para v1.3.0
+
+6. **Tags customizadas** (#13) — organização por tecnologia
+7. **Visualizador de PDF** (#12) — docs e slides sem sair do app
+8. **Importar YouTube** (#21) — muitos cursos bons estão lá
+9. **Modo foco** (#20) — tela cheia sem distrações
+10. **Histórico com heatmap** (#15) — motivação visual
+
+---
+
+## Como o auto-release funciona
+
+Cada push na branch `main` que altere código (não apenas `.md`) e tenha uma versão nova no `package.json`:
+
+1. GitHub Actions lê a versão
+2. Cria a tag automaticamente
+3. Compila o instalador Windows
+4. Publica a Release
+5. O auto-updater notifica quem já tem o app instalado
+
+**Resultado**: implementou → pushou → usuários recebem a atualização. Zero fricção.

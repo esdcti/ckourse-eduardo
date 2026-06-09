@@ -1,0 +1,96 @@
+name: Auto Release on Push
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "*.md"
+      - ".github/**"
+
+jobs:
+  tag-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from package.json
+        id: version
+        shell: powershell
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          echo "version=v$version" >> $env:GITHUB_OUTPUT
+          echo "Detected version: v$version"
+
+      - name: Check if tag already exists
+        id: check_tag
+        shell: powershell
+        run: |
+          $tag = "${{ steps.version.outputs.version }}"
+          $exists = git tag -l $tag
+          if ($exists) {
+            echo "exists=true" >> $env:GITHUB_OUTPUT
+            echo "Tag $tag already exists, skipping release"
+          } else {
+            echo "exists=false" >> $env:GITHUB_OUTPUT
+            echo "Tag $tag does not exist, will create release"
+          }
+
+      - name: Create and push tag
+        if: steps.check_tag.outputs.exists == 'false'
+        shell: powershell
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag ${{ steps.version.outputs.version }}
+          git push origin ${{ steps.version.outputs.version }}
+
+      - name: Setup Node.js
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Rust stable
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        if: steps.check_tag.outputs.exists == 'false'
+        run: npm ci
+
+      - name: Download ffprobe/ffmpeg binaries
+        if: steps.check_tag.outputs.exists == 'false'
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path src-tauri/binaries
+          $ffprobePath = node -e "console.log(require('ffprobe-static').path)"
+          $ffmpegPath = node -e "console.log(require('ffmpeg-static'))"
+          Copy-Item $ffprobePath "src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe"
+          Copy-Item $ffmpegPath "src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe"
+
+      - name: Build Tauri app
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+        with:
+          tagName: ${{ steps.version.outputs.version }}
+          releaseName: "Ckourse ${{ steps.version.outputs.version }}"
+          releaseBody: "Release automática. Veja CHANGELOG.md para detalhes."
+          releaseDraft: false
+          prerelease: false
