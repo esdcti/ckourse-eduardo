@@ -13,6 +13,7 @@ import { SquircleButton } from "@/components/ui/SquircleButton";
 import { EASE_OUT, SNAPPY } from "@/lib/constants";
 import type { CourseCategory, Course } from "@/types";
 import { getCustomCategories, addCustomCategory, deleteCustomCategory } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 
 const builtinCategories: { value: CourseCategory; label: string }[] = [
   { value: "frontend", label: "Frontend" },
@@ -55,6 +56,7 @@ export function CourseEditPanel({
   onBack,
   className,
 }: CourseEditPanelProps) {
+  const t = useI18n();
   const [title, setTitle] = useState(course.title);
   const [author, setAuthor] = useState(course.author);
   const [category, setCategory] = useState<string>(course.category);
@@ -115,7 +117,7 @@ export function CourseEditPanel({
           className="inline-flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />
-          Back to Course
+          {t.backToCourse}
         </button>
       </div>
 
@@ -128,10 +130,10 @@ export function CourseEditPanel({
         }}
       >
         <h2 className="font-heading text-2xl font-bold text-foreground">
-          Edit Course
+          {t.editCourse}
         </h2>
         <p className="mt-2 font-sans text-sm text-muted-foreground">
-          Update course details or manage progress and data.
+          {t.updateCourseDesc}
         </p>
       </div>
 
@@ -165,25 +167,25 @@ export function CourseEditPanel({
           }}
         >
           <h3 className="font-heading text-base font-bold text-foreground">
-            Course Details
+            {t.courseDetails}
           </h3>
 
-          <FieldGroup label="Title">
+          <FieldGroup label={t.courseTitle}>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Course title"
+              placeholder={t.courseTitle}
               className="w-full bg-transparent font-sans text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
             />
           </FieldGroup>
 
-          <FieldGroup label="Author">
+          <FieldGroup label={t.author}>
             <input
               type="text"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              placeholder="Instructor name"
+              placeholder={t.instructorName}
               className="w-full bg-transparent font-sans text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
             />
           </FieldGroup>
@@ -198,7 +200,7 @@ export function CourseEditPanel({
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground">
               <Palette className="size-3.5" />
-              Accent Color
+              {t.accentColor}
             </label>
             <div className="flex flex-wrap gap-2">
               {accentColors.map((color) => (
@@ -224,11 +226,11 @@ export function CourseEditPanel({
               disabled={!title.trim() || !hasChanges || saving}
             >
               <FloppyDisk className="size-4" weight="bold" />
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t.saving : t.saveChanges}
             </SquircleButton>
             {hasChanges && (
               <span className="font-sans text-xs text-muted-foreground">
-                Unsaved changes
+                {t.unsavedChanges}
               </span>
             )}
           </div>
@@ -243,7 +245,7 @@ export function CourseEditPanel({
           }}
         >
           <h3 className="font-heading text-base font-bold text-foreground">
-            Manage
+            {t.manage}
           </h3>
 
           <div className="rounded-xl border border-border bg-card p-4">
@@ -253,10 +255,10 @@ export function CourseEditPanel({
               </div>
               <div className="flex-1">
                 <p className="font-sans text-sm font-medium text-foreground">
-                  Reset Progress
+                  {t.resetProgress}
                 </p>
                 <p className="mt-0.5 font-sans text-xs text-muted-foreground">
-                  Mark all lessons as incomplete and clear watch history.
+                  {t.resetProgressDesc}
                 </p>
                 {!confirmReset ? (
                   <button
@@ -264,7 +266,7 @@ export function CourseEditPanel({
                     className="mt-3 rounded-md border border-border px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     style={{ transitionTimingFunction: SNAPPY }}
                   >
-                    Reset Progress
+                    {t.resetProgress}
                   </button>
                 ) : (
                   <div className="mt-3 flex items-center gap-2">
@@ -273,13 +275,13 @@ export function CourseEditPanel({
                       className="rounded-md bg-info/15 px-3 py-1.5 font-sans text-xs font-medium text-info transition-colors hover:bg-info/25"
                       style={{ transitionTimingFunction: SNAPPY }}
                     >
-                      Confirm Reset
+                      {t.confirmResetBtn}
                     </button>
                     <button
                       onClick={() => setConfirmReset(false)}
                       className="rounded-md px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
-                      Cancel
+                      {t.cancel}
                     </button>
                   </div>
                 )}
@@ -294,11 +296,10 @@ export function CourseEditPanel({
               </div>
               <div className="flex-1">
                 <p className="font-sans text-sm font-medium text-foreground">
-                  Delete Course
+                  {t.deleteCourse}
                 </p>
                 <p className="mt-0.5 font-sans text-xs text-muted-foreground">
-                  Remove this course from your library. Your files on disk won't
-                  be affected.
+                  {t.deleteCourseDesc}
                 </p>
                 {!confirmDelete ? (
                   <button
@@ -306,7 +307,7 @@ export function CourseEditPanel({
                     className="mt-3 rounded-md border border-destructive/25 bg-destructive/10 px-3 py-1.5 font-sans text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
                     style={{ transitionTimingFunction: SNAPPY }}
                   >
-                    Delete Course
+                    {t.deleteCourse}
                   </button>
                 ) : (
                   <div className="mt-3">
@@ -316,8 +317,7 @@ export function CourseEditPanel({
                         weight="bold"
                       />
                       <span className="font-sans text-xs text-destructive">
-                        This will delete all notes and progress. This cannot be
-                        undone.
+                        {t.deleteWarning}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -326,13 +326,13 @@ export function CourseEditPanel({
                         className="rounded-md bg-destructive px-3 py-1.5 font-sans text-xs font-medium text-white transition-colors hover:bg-destructive/90"
                         style={{ transitionTimingFunction: SNAPPY }}
                       >
-                        Yes, Delete
+                        {t.yesDelete}
                       </button>
                       <button
                         onClick={() => setConfirmDelete(false)}
                         className="rounded-md px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                       >
-                        Cancel
+                        {t.cancel}
                       </button>
                     </div>
                   </div>
@@ -357,6 +357,7 @@ function CategoryPicker({
   customCategories: string[];
   onCustomCategoriesChange: (v: string[]) => void;
 }) {
+  const t = useI18n();
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -391,7 +392,7 @@ function CategoryPicker({
   return (
     <div className="flex flex-col gap-2">
       <label className="font-sans text-xs font-medium text-muted-foreground">
-        Category
+        {t.category}
       </label>
       <div className="flex flex-wrap gap-1.5">
         {builtinCategories.map((cat) => (
@@ -441,7 +442,7 @@ function CategoryPicker({
                 if (e.key === "Enter") handleAdd();
                 if (e.key === "Escape") { setAdding(false); setNewName(""); }
               }}
-              placeholder="Category name"
+              placeholder={t.categoryName}
               className="w-24 bg-transparent font-sans text-xs text-primary placeholder:text-primary/50 focus:outline-none"
             />
             <button
@@ -469,7 +470,7 @@ function CategoryPicker({
             className="rounded-full border border-dashed border-border/50 px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors duration-150 hover:border-primary/25 hover:text-primary"
             style={{ transitionTimingFunction: SNAPPY }}
           >
-            + Custom
+            {t.customCategory}
           </button>
         )}
       </div>

@@ -25,6 +25,7 @@ export function Bookmarks({ className }: BookmarksProps) {
   const [favorites, setFavorites] = useState<FavoriteLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"courses" | "favorites">("courses");
+  const t = useI18n();
 
   const reload = useCallback(() => {
     return Promise.all([getBookmarkedCourses(), getAllFavorites()]).then(
@@ -59,7 +60,6 @@ export function Bookmarks({ className }: BookmarksProps) {
   }
 
   const isEmpty = courses.length === 0 && favorites.length === 0;
-  const t = useI18n();
 
   return (
     <div className={cn("mx-auto max-w-6xl", className)}>
@@ -75,7 +75,7 @@ export function Bookmarks({ className }: BookmarksProps) {
             {t.noBookmarks}
           </h2>
           <p className="max-w-xs font-sans text-sm text-muted-foreground">
-            {t.bookmarkedCourses === "Cursos Marcados" ? "Marque cursos e favorite vídeos para encontrá-los rapidamente aqui." : "Bookmark courses and favorite videos to find them quickly here."}
+            {t.bookmarkCourseDesc}
           </p>
         </div>
       ) : (
@@ -135,8 +135,8 @@ export function Bookmarks({ className }: BookmarksProps) {
               ) : (
                 <EmptySection
                   icon={BookmarkSimple}
-                  message="No bookmarked courses"
-                  description="Bookmark a course from your library or course detail page."
+                  message={t.noBookmarks}
+                  description={t.bookmarkFromLibrary}
                 />
               )}
             </>
@@ -158,8 +158,8 @@ export function Bookmarks({ className }: BookmarksProps) {
               ) : (
                 <EmptySection
                   icon={Heart}
-                  message="No favorite videos"
-                  description="Favorite a video from the curriculum sidebar."
+                  message={t.noFavorites}
+                  description={t.favoriteFromCurriculum}
                 />
               )}
             </>

@@ -22,20 +22,6 @@ import { useI18n } from "@/lib/i18n";
 
 type SortOption = "recent" | "progress" | "title";
 
-const builtinCategoryLabels: Record<CourseCategory | "all", string> = {
-  all: "All",
-  frontend: "Frontend",
-  backend: "Backend",
-  devops: "DevOps",
-  database: "Database",
-  design: "Design",
-  other: "Other",
-};
-
-function getCategoryLabel(cat: string): string {
-  return builtinCategoryLabels[cat as CourseCategory | "all"] ?? cat;
-}
-
 interface DashboardProps {
   className?: string;
 }
@@ -50,6 +36,18 @@ export function Dashboard({ className }: DashboardProps) {
   const filterRef = useRef<HTMLDivElement>(null);
   const [filterHeight, setFilterHeight] = useState(0);
   const t = useI18n();
+
+  const categoryLabelsI18n: Record<string, string> = {
+    all: t.all,
+    frontend: t.frontend,
+    backend: t.backend,
+    devops: t.devops,
+    database: t.database,
+    design: t.design,
+    other: t.other,
+  };
+
+  const getCategoryLabel = (cat: string): string => categoryLabelsI18n[cat] ?? cat;
 
   const statusLabelsI18n: Record<CourseStatus | "all", string> = {
     all: t.allStatus,

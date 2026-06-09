@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { EASE } from "@/lib/constants";
 import { formatDuration } from "@/lib/format";
 import type { Section, Lesson } from "@/types";
+import { useI18n } from "@/lib/i18n";
 
 interface SectionAccordionProps {
   section: Section;
@@ -38,6 +39,7 @@ export function SectionAccordion({
     (sum, l) => sum + l.duration,
     0,
   );
+  const t = useI18n();
 
   return (
     <div className="border-b border-border last:border-b-0">
@@ -63,7 +65,7 @@ export function SectionAccordion({
             )}
           </div>
           <span className="font-mono text-[10px] text-muted-foreground/60">
-            {section.lessons.length} {section.lessons.length === 1 ? "lesson" : "lessons"}
+            {section.lessons.length} {section.lessons.length === 1 ? t.lesson : t.lessons.toLowerCase()}
             {sectionDuration > 0 && <> · {formatDuration(sectionDuration)}</>}
           </span>
         </div>

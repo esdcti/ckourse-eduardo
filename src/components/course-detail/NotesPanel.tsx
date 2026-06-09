@@ -6,6 +6,7 @@ import {
 import { NoteEditor } from "./NoteEditor";
 import { SNAPPY } from "@/lib/constants";
 import type { Note } from "@/types";
+import { useI18n } from "@/lib/i18n";
 
 interface NotesPanelProps {
   notes: Note[];
@@ -32,6 +33,7 @@ export function NotesPanel({
   onSetShowEditor,
   onTimestampClick,
 }: NotesPanelProps) {
+  const t = useI18n();
   return (
     <div className="flex flex-col gap-3">
       {showEditor ? (
@@ -47,13 +49,13 @@ export function NotesPanel({
           style={{ transitionTimingFunction: SNAPPY }}
         >
           <NotePencil className="size-3.5" />
-          Add a note...
+          {t.addANote}
         </button>
       )}
 
       {notes.length === 0 && !showEditor && (
         <p className="py-4 text-center font-sans text-xs text-muted-foreground/60">
-          No notes yet. Start capturing your thoughts.
+          {t.noNotesCapture}
         </p>
       )}
 

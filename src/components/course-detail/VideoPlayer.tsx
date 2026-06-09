@@ -30,6 +30,7 @@ import { formatVideoTime } from "@/lib/format";
 import type { Lesson, Subtitle, VideoPlayerHandle } from "@/types";
 import { getSubtitleVtt } from "@/lib/store";
 import { EASE_OUT } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 
 interface VideoPlayerProps {
   lesson: Lesson | undefined;
@@ -127,6 +128,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   const videoRef = useRef<HTMLVideoElement>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
   const seekBarRef = useRef<HTMLDivElement>(null);
+  const t = useI18n();
 
   useImperativeHandle(ref, () => ({
     seekTo(seconds: number) {
@@ -668,7 +670,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
       <div className="relative overflow-hidden rounded-xl border border-border bg-black">
         <div className="flex aspect-video items-center justify-center bg-card">
           <p className="font-sans text-sm text-muted-foreground">
-            No lesson selected
+            {t.noLessonSelected}
           </p>
         </div>
       </div>
@@ -758,7 +760,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
             }}
           >
             <p className="font-heading text-base font-semibold text-white">
-              Lesson Complete
+              {t.lessonComplete}
             </p>
             <div className="flex items-center gap-3">
               <button
@@ -766,7 +768,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                 className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 font-sans text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20"
               >
                 <CounterClockwise className="size-4" />
-                Replay
+                {t.replay}
               </button>
               {hasNext && (
                 <div className="relative">
@@ -807,7 +809,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                     onClick={onNext}
                     className="relative flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-sans text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
-                    Next Lesson
+                    {t.nextLesson}
                     {autoSkipEnabled && !autoSkipCancelled && (
                       <span className="font-mono text-xs font-normal opacity-70">
                         {Math.ceil(autoSkipRemaining)}

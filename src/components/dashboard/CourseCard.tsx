@@ -7,43 +7,43 @@ import { useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { Course } from "@/types";
 import { toggleBookmark } from "@/lib/store";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Translations } from "@/lib/i18n";
 
-function getStatusBadge(status: Course["status"]) {
+function getStatusBadge(status: Course["status"], t: Translations) {
   switch (status) {
     case "completed":
       return (
         <Badge variant="default">
-          Completed
+          {t.completed}
         </Badge>
       );
     case "in-progress":
       return (
         <Badge variant="info">
-          In Progress
+          {t.inProgress}
         </Badge>
       );
     case "not-started":
       return (
         <Badge variant="secondary">
-          Not Started
+          {t.notStarted}
         </Badge>
       );
   }
 }
 
-function formatLastWatched(dateStr: string | null): string {
-  if (!dateStr) return "Never";
+function formatLastWatched(dateStr: string | null, t: Translations): string {
+  if (!dateStr) return t.never;
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (diffDays === 0) return t.today;
+  if (diffDays === 1) return t.yesterday;
+  if (diffDays < 7) return `${diffDays}${t.daysAgo}`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}${t.weeksAgo}`;
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 export function CourseCard({ course, onBookmarkChange }: { course: Course; onBookmarkChange?: () => void }) {
@@ -87,7 +87,7 @@ export function CourseCard({ course, onBookmarkChange }: { course: Course; onBoo
               <h3 className="line-clamp-2 min-h-[2.5em] font-sans text-sm font-semibold leading-tight text-foreground">
                 {course.title}
               </h3>
-              {getStatusBadge(course.status)}
+              {getStatusBadge(course.status, t)}
             </div>
 
             <div className="flex items-center justify-between">
@@ -96,7 +96,7 @@ export function CourseCard({ course, onBookmarkChange }: { course: Course; onBoo
               </p>
               <span className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
                 <Clock className="size-3" />
-                {formatLastWatched(course.lastWatched)}
+                {formatLastWatched(course.lastWatched, t)}
               </span>
             </div>
 

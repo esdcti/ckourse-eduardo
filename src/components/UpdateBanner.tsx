@@ -6,9 +6,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useUpdater } from "@/hooks/useUpdater";
 import { EASE_OUT } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 
 export function UpdateBanner() {
   const updater = useUpdater();
+  const t = useI18n();
 
   const showBanner =
     !updater.dismissed &&
@@ -34,17 +36,17 @@ export function UpdateBanner() {
         <div className="min-w-0 flex-1">
           <div className="font-sans text-sm font-semibold text-foreground">
             {isReady
-              ? "Update ready"
+              ? t.updateReady
               : isDownloading
-                ? `Downloading ${percent}%`
-                : `Update available`}
+                ? `${t.downloading} ${percent}%`
+                : t.updateAvailable}
           </div>
           <div className="truncate font-sans text-xs text-muted-foreground">
             {isReady
-              ? "Restart to finish installing"
+              ? t.restartToFinish
               : isDownloading
-                ? `Version ${updater.version}`
-                : `Version ${updater.version} is ready to install`}
+                ? `${updater.version}`
+                : `${updater.version} ${t.versionReadyInstall}`}
           </div>
           {isDownloading && (
             <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-secondary">
@@ -66,7 +68,7 @@ export function UpdateBanner() {
             )}
           >
             <DownloadSimple className="size-3.5" weight="bold" />
-            {isReady ? "Restart" : "Install"}
+            {isReady ? t.restart : t.install}
           </button>
         )}
         <button

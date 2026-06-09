@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { EASE_OUT } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 
 interface Particle {
   x: number;
@@ -56,6 +57,7 @@ interface CourseCelebrationProps {
 }
 
 export function CourseCelebration({ show, onDone }: CourseCelebrationProps) {
+  const t = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
@@ -176,10 +178,10 @@ export function CourseCelebration({ show, onDone }: CourseCelebrationProps) {
         }}
       >
         <h2 className="font-heading text-3xl font-bold text-foreground">
-          Course Complete!
+          {t.courseComplete}
         </h2>
         <p className="font-sans text-sm text-muted-foreground">
-          Congratulations on finishing the course
+          {t.congratsFinish}
         </p>
       </div>
     </div>

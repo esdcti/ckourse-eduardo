@@ -178,8 +178,9 @@ function DeleteConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const t = useI18n();
   const [input, setInput] = useState("");
-  const matches = input.toLowerCase().trim() === CONFIRM_PHRASE;
+  const matches = input.toLowerCase().trim() === t.confirmPhrase;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -204,28 +205,27 @@ function DeleteConfirmDialog({
           </div>
           <div>
             <h3 className="font-heading text-base font-bold text-foreground">
-              Delete all data
+              {t.deleteAllData}
             </h3>
             <p className="font-sans text-xs text-muted-foreground">
-              This action cannot be undone
+              {t.cannotBeUndone}
             </p>
           </div>
         </div>
 
         <p className="mb-4 font-sans text-sm text-muted-foreground">
-          This will permanently delete all your courses, progress, notes, bookmarks,
-          favorites, and settings. Your original course files on disk will not be affected.
+          {t.permanentlyRemove}
         </p>
 
         <div className="mb-4">
           <label className="mb-1.5 block font-sans text-xs font-medium text-muted-foreground">
-            Type <span className="font-mono font-bold text-foreground">{CONFIRM_PHRASE}</span> to confirm
+            {t.typeToConfirm} <span className="font-mono font-bold text-foreground">{t.confirmPhrase}</span> {t.cannotBeUndone.toLowerCase().includes("confirm") ? "" : ""}
           </label>
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={CONFIRM_PHRASE}
+            placeholder={t.confirmPhrase}
             autoFocus
             className={cn(
               "w-full rounded-lg border bg-secondary px-3 py-2",
@@ -245,7 +245,7 @@ function DeleteConfirmDialog({
             onClick={onCancel}
             className="rounded-lg px-4 py-2 font-sans text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             onClick={onConfirm}
@@ -257,7 +257,7 @@ function DeleteConfirmDialog({
                 : "cursor-not-allowed bg-secondary text-muted-foreground/40",
             )}
           >
-            Delete everything
+            {t.deleteEverything}
           </button>
         </div>
       </div>
@@ -299,7 +299,7 @@ function DataDirPicker() {
     const selected = await open({
       directory: true,
       multiple: false,
-      title: "Escolher pasta para o banco de dados",
+      title: t.chooseFolderTitle,
     });
     if (selected) {
       try {
@@ -307,7 +307,7 @@ function DataDirPicker() {
         setMessage(msg);
         setInfo((prev) => prev ? { ...prev, customDataDir: selected as string } : prev);
       } catch (err) {
-        setMessage(typeof err === "string" ? err : "Erro ao definir pasta");
+        setMessage(typeof err === "string" ? err : t.errorSetFolder);
       }
     }
   };
@@ -318,7 +318,7 @@ function DataDirPicker() {
       setMessage(msg);
       setInfo((prev) => prev ? { ...prev, customDataDir: null } : prev);
     } catch (err) {
-      setMessage(typeof err === "string" ? err : "Erro ao resetar");
+      setMessage(typeof err === "string" ? err : t.errorResetFolder);
     }
   };
 
@@ -329,11 +329,11 @@ function DataDirPicker() {
       <div className="flex items-center justify-between gap-3 rounded-lg bg-secondary/50 px-3 py-2.5">
         <div>
           <div className="font-sans text-xs font-medium text-foreground">
-            {info.isPortable ? t.portableModeActive : "Local do banco de dados"}
+            {info.isPortable ? t.portableModeActive : t.databaseLocation}
           </div>
           {info.customDataDir && (
             <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
-              Customizado: {info.customDataDir}
+              {t.customDataDir} {info.customDataDir}
             </div>
           )}
         </div>
@@ -344,7 +344,7 @@ function DataDirPicker() {
                 onClick={handleReset}
                 className="shrink-0 rounded-lg border border-border bg-secondary px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
-                Restaurar padrão
+                {t.restoreDefault}
               </button>
             )}
             <button
@@ -353,7 +353,7 @@ function DataDirPicker() {
             >
               <span className="flex items-center gap-1.5">
                 <Folder className="size-3.5" />
-                Alterar local
+                {t.changeLocation}
               </span>
             </button>
           </div>
@@ -370,6 +370,7 @@ function DataDirPicker() {
 
 function UpdatesSection({ index }: { index: number }) {
   const updater = useUpdater();
+  const t = useI18n();
   const [appVersion, setAppVersion] = useState<string>("");
 
   useEffect(() => {
@@ -382,31 +383,31 @@ function UpdatesSection({ index }: { index: number }) {
   const hasUpdate = updater.status === "available" || isDownloading || isReady;
   const percent = Math.round(updater.progress * 100);
 
-  let buttonLabel = "Check for updates";
-  if (isChecking) buttonLabel = "Checking…";
-  else if (isReady) buttonLabel = "Restart to update";
-  else if (isDownloading) buttonLabel = `Downloading ${percent}%`;
-  else if (updater.status === "available") buttonLabel = `Install v${updater.version}`;
+  let buttonLabel = t.checkForUpdates;
+  if (isChecking) buttonLabel = t.checking;
+  else if (isReady) buttonLabel = t.restartToUpdate;
+  else if (isDownloading) buttonLabel = `${t.downloading} ${percent}%`;
+  else if (updater.status === "available") buttonLabel = `${t.installVersion} v${updater.version}`;
 
   const onClick = () => {
     if (hasUpdate) updater.install();
     else updater.check();
   };
 
-  let description = appVersion ? `Current version v${appVersion}` : "Check for new versions";
-  if (updater.status === "up-to-date") description = `You're on the latest version (v${appVersion})`;
-  else if (updater.status === "available") description = `Version ${updater.version} is available`;
-  else if (updater.status === "error") description = updater.error ?? "Update check failed";
+  let description = appVersion ? `${t.currentVersion} v${appVersion}` : t.checkNewVersions;
+  if (updater.status === "up-to-date") description = `${t.upToDate} (v${appVersion})`;
+  else if (updater.status === "available") description = `${updater.version} ${t.updateAvailable}`;
+  else if (updater.status === "error") description = updater.error ?? t.updateCheckFailed;
 
   return (
     <SectionCard
-      title="Updates"
+      title={t.updates}
       icon={<ArrowsClockwise className="size-4 text-info" weight="bold" />}
       index={index}
     >
       <SettingRow
         icon={<ArrowsClockwise className={cn("size-4", isChecking && "animate-spin")} />}
-        label="App updates"
+        label={t.appUpdates}
         description={description}
       >
         <button

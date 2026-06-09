@@ -21,13 +21,6 @@ const LEVEL_ICONS: Record<number, string> = {
   4: level4,
 };
 
-const LEVEL_NAMES: Record<number, string> = {
-  1: "Beginner",
-  2: "Explorer",
-  3: "Achiever",
-  4: "Master",
-};
-
 function formatWatchTime(mins: number): string {
   if (mins < 60) return `${mins}m`;
   const h = Math.floor(mins / 60);
@@ -107,7 +100,7 @@ function WeekActivity({ activity, index }: WeekActivityProps) {
         </div>
         <div className="min-w-0">
           <div className="mb-1 font-sans text-[11px] text-muted-foreground">
-            This week
+            {t.thisWeek}
           </div>
           <div className="flex items-center gap-1.5">
             {activity.map((active, i) => (
@@ -148,8 +141,15 @@ function getLevelProgress(level: number, lessonsToNext: number): number {
 }
 
 function LevelCard({ level, lessonsToNext, index }: LevelCardProps) {
+  const t = useI18n();
+  const LEVEL_NAMES_I18N: Record<number, string> = {
+    1: t.levelBeginner,
+    2: t.levelExplorer,
+    3: t.levelAchiever,
+    4: t.levelMaster,
+  };
   const icon = LEVEL_ICONS[level] ?? LEVEL_ICONS[1];
-  const name = LEVEL_NAMES[level] ?? LEVEL_NAMES[1];
+  const name = LEVEL_NAMES_I18N[level] ?? LEVEL_NAMES_I18N[1];
   const progress = getLevelProgress(level, lessonsToNext);
 
   return (
@@ -185,7 +185,7 @@ function LevelCard({ level, lessonsToNext, index }: LevelCardProps) {
             </div>
             {lessonsToNext > 0 && (
               <span className="shrink-0 font-mono text-[9px] text-muted-foreground/50">
-                {lessonsToNext} left
+                {lessonsToNext} {t.left}
               </span>
             )}
           </div>
