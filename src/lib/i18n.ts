@@ -324,6 +324,7 @@ export interface Translations {
   navigation: string;
   app: string;
   anotherLesson: string;
+  noResultsFor: string;
 }
 
 const en: Translations = {
@@ -621,6 +622,7 @@ const en: Translations = {
   navigation: "Navigation",
   app: "App",
   anotherLesson: "another lesson",
+  noResultsFor: "No results for",
 };
 
 const ptBR: Translations = {
@@ -918,6 +920,7 @@ const ptBR: Translations = {
   navigation: "Navegação",
   app: "App",
   anotherLesson: "outra aula",
+  noResultsFor: "Nenhum resultado para",
 };
 
 const translations: Record<Locale, Translations> = {

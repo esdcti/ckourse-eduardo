@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { searchContent } from "@/lib/store";
 import type { SearchResult } from "@/types";
 import { spring } from "./constants";
+import { useI18n } from "@/lib/i18n";
 
 const EASE_OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
 
@@ -20,6 +21,7 @@ interface SidebarSearchProps {
 export function SidebarSearch({ collapsed }: SidebarSearchProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const t = useI18n();
   const [results, setResults] = useState<SearchResult[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -129,7 +131,7 @@ export function SidebarSearch({ collapsed }: SidebarSearchProps) {
             transition: `opacity ${spring()}, max-width ${spring()}`,
           }}
         >
-          <span className="font-sans text-sm">Search</span>
+          <span className="font-sans text-sm">{t.search}</span>
           <kbd className="ml-auto shrink-0 rounded border border-sidebar-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
             /
           </kbd>
@@ -177,7 +179,7 @@ export function SidebarSearch({ collapsed }: SidebarSearchProps) {
                 value={query}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Search courses and lessons…"
+                placeholder={t.searchCourses}
                 className="flex-1 bg-transparent font-sans text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
               {query ? (
@@ -209,7 +211,7 @@ export function SidebarSearch({ collapsed }: SidebarSearchProps) {
                     <div>
                       <div className="px-4 pb-1 pt-2">
                         <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
-                          Courses
+                          {t.courses}
                         </span>
                       </div>
                       {courseResults.map((r) => {
@@ -252,7 +254,7 @@ export function SidebarSearch({ collapsed }: SidebarSearchProps) {
                       )}
                       <div className="px-4 pb-1 pt-2">
                         <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
-                          Lessons
+                          {t.lessons}
                         </span>
                       </div>
                       {lessonResults.map((r) => {
@@ -302,7 +304,7 @@ export function SidebarSearch({ collapsed }: SidebarSearchProps) {
                 <div className="mx-4 h-px bg-border/50" />
                 <div className="px-4 py-8 text-center">
                   <p className="font-sans text-sm text-muted-foreground">
-                    No results for <span className="text-foreground">"{query}"</span>
+                    {t.noResultsFor} <span className="text-foreground">"{query}"</span>
                   </p>
                 </div>
               </>
