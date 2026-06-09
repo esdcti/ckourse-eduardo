@@ -301,6 +301,29 @@ export interface Translations {
   contentStillInEditor: string;
   changesNotSaved: string;
   fileMayBeMoved: string;
+
+  // NoteEditor
+  currentTime: string;
+  goToTime: string;
+  bold: string;
+  italic: string;
+  underline: string;
+  strikethrough: string;
+  typeAtToTag: string;
+  writeANote: string;
+
+  // VideoPlayer tooltips
+  tooltipBack: string;
+  tooltipForward: string;
+  tooltipNextLesson: string;
+  tooltipSpeed: string;
+  tooltipSubtitles: string;
+  tooltipPiP: string;
+
+  // AppShell
+  navigation: string;
+  app: string;
+  anotherLesson: string;
 }
 
 const en: Translations = {
@@ -578,6 +601,26 @@ const en: Translations = {
   contentStillInEditor: "Your content is still in the editor.",
   changesNotSaved: "Your changes weren't saved.",
   fileMayBeMoved: "The file may have been moved or deleted.",
+
+  currentTime: "Current time",
+  goToTime: "Go to time",
+  bold: "Bold",
+  italic: "Italic",
+  underline: "Underline",
+  strikethrough: "Strikethrough",
+  typeAtToTag: "Type @ to tag time",
+  writeANote: "Write a note...",
+
+  tooltipBack: "Back 10s (J)",
+  tooltipForward: "Forward 10s (L)",
+  tooltipNextLesson: "Next lesson",
+  tooltipSpeed: "Playback speed",
+  tooltipSubtitles: "Subtitles (C)",
+  tooltipPiP: "Picture-in-Picture (P)",
+
+  navigation: "Navigation",
+  app: "App",
+  anotherLesson: "another lesson",
 };
 
 const ptBR: Translations = {
@@ -855,6 +898,26 @@ const ptBR: Translations = {
   contentStillInEditor: "Seu conteúdo ainda está no editor.",
   changesNotSaved: "Suas alterações não foram salvas.",
   fileMayBeMoved: "O arquivo pode ter sido movido ou excluído.",
+
+  currentTime: "Tempo atual",
+  goToTime: "Ir para o tempo",
+  bold: "Negrito",
+  italic: "Itálico",
+  underline: "Sublinhado",
+  strikethrough: "Tachado",
+  typeAtToTag: "Digite @ para marcar o tempo",
+  writeANote: "Escreva uma nota...",
+
+  tooltipBack: "Voltar 10s (J)",
+  tooltipForward: "Avançar 10s (L)",
+  tooltipNextLesson: "Próxima aula",
+  tooltipSpeed: "Velocidade de reprodução",
+  tooltipSubtitles: "Legendas (C)",
+  tooltipPiP: "Picture-in-Picture (P)",
+
+  navigation: "Navegação",
+  app: "App",
+  anotherLesson: "outra aula",
 };
 
 const translations: Record<Locale, Translations> = {

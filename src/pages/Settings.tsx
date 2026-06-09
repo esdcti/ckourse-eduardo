@@ -169,8 +169,6 @@ function StatChip({ icon, label, value }: StatChipProps) {
   );
 }
 
-const CONFIRM_PHRASE = "delete all";
-
 function DeleteConfirmDialog({
   onConfirm,
   onCancel,

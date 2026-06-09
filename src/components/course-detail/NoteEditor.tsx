@@ -8,6 +8,7 @@ import {
   TextStrikethroughIcon as TextStrikethrough,
   ClockIcon as Clock,
 } from "@phosphor-icons/react";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { buildTimestampHtml, formatTimestamp, parseTimeString } from "@/lib/format";
 import { SNAPPY, EASE_OUT } from "@/lib/constants";

@@ -84,6 +84,7 @@ interface WeekActivityProps {
 
 function WeekActivity({ activity, index }: WeekActivityProps) {
   const labels = getWeekdayLabels();
+  const t = useI18n();
 
   return (
     <div
