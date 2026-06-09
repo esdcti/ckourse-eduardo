@@ -1,105 +1,105 @@
 # Ckourse
 
-> Your local course player — with progress that actually sticks.
+> Seu player local de cursos — com progresso que realmente funciona.
 
-Ckourse is an open-source desktop application for watching and organizing downloaded courses. No subscriptions, no cloud, no chaos — just your files, beautifully organized with full progress tracking.
-
----
-
-## The Problem
-
-You download a course from the internet. You get a folder with 80 videos, inconsistently named, nested in subfolders, with PDFs and subtitles scattered around. You watch a few lessons, close your laptop, and come back three days later with no idea where you left off.
-
-Your media player doesn't know what "Section 4 - Lesson 12" means. Your file manager doesn't track progress. Nothing ties it all together.
-
-**Ckourse does.**
+Ckourse é um aplicativo desktop open-source para assistir e organizar cursos baixados. Sem assinaturas, sem nuvem, sem bagunça — apenas seus arquivos, organizados de forma bonita com rastreamento completo de progresso.
 
 ---
 
-## Features
+## O Problema
+
+Você baixa um curso da internet. Recebe uma pasta com 80 vídeos, nomeados de forma inconsistente, dentro de subpastas, com PDFs e legendas espalhados. Assiste algumas aulas, fecha o notebook e volta três dias depois sem ideia de onde parou.
+
+Seu media player não sabe o que "Seção 4 - Aula 12" significa. Seu gerenciador de arquivos não rastreia progresso. Nada une tudo isso.
+
+**O Ckourse resolve.**
+
+---
+
+## Funcionalidades
 
 ### ✅ v1 — Core
-- 📁 **Smart folder import** — point Ckourse at any course folder and it parses the structure automatically, detecting sections, lessons, subtitles, and attachments
-- ▶️ **Built-in video player** — native HTML5 player with subtitle support, autoplay, and timestamp navigation
-- 📊 **Progress tracking** — per-lesson completion, per-course progress bar, resume from exactly where you stopped
-- 📝 **Timestamped notes** — add notes tied to specific timestamps and navigate back to them instantly, even across lessons
-- 🔖 **Bookmarks** — bookmark lessons for quick access from a dedicated page
-- 🗂️ **Course library** — a clean dashboard of all your imported courses with progress at a glance
-- 🎉 **Completion celebration** — canvas particle animation when you finish a course
-- 🌙 **Themes** — light, dark, and system-sync
+- 📁 **Importação inteligente de pastas** — aponte o Ckourse para qualquer pasta de curso e ele analisa a estrutura automaticamente, detectando seções, aulas, legendas e anexos
+- ▶️ **Player de vídeo integrado** — player HTML5 nativo com suporte a legendas, autoplay e navegação por timestamp
+- 📊 **Rastreamento de progresso** — conclusão por aula, barra de progresso por curso, retome exatamente de onde parou
+- 📝 **Notas com timestamp** — adicione notas vinculadas a timestamps específicos e navegue de volta instantaneamente, mesmo entre aulas
+- 🔖 **Bookmarks** — marque aulas para acesso rápido em uma página dedicada
+- 🗂️ **Biblioteca de cursos** — um dashboard limpo com todos os cursos importados e progresso visível
+- 🎉 **Celebração de conclusão** — animação de partículas em canvas quando você termina um curso
+- 🌙 **Temas** — claro, escuro e sincronizado com o sistema
 
-### 🚧 v2 — Planned
-- 📄 **PDF/resource viewer** — read course attachments without leaving the app
-- 🔍 **Search** — search across all courses, lessons, and your personal notes
+### 🚧 v2 — Planejado
+- 📄 **Visualizador de PDF/recursos** — leia anexos do curso sem sair do app
+- 🔍 **Busca** — busque em todos os cursos, aulas e suas notas pessoais
 
 ---
 
-## Tech Stack
+## Stack Tecnológica
 
-| Layer | Technology |
+| Camada | Tecnologia |
 |---|---|
-| Desktop Framework | [Tauri 2](https://tauri.app/) |
+| Framework Desktop | [Tauri 2](https://tauri.app/) |
 | Frontend | [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) |
-| Routing | [React Router 7](https://reactrouter.com/) |
-| Styling | [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) + [Radix UI](https://www.radix-ui.com/) |
-| Icons | [Phosphor Icons](https://phosphoricons.com/) |
-| Charts | [Recharts](https://recharts.org/) |
-| Analytics | [PostHog](https://posthog.com/) (optional, env-configured) |
+| Roteamento | [React Router 7](https://reactrouter.com/) |
+| Estilização | [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) + [Radix UI](https://www.radix-ui.com/) |
+| Ícones | [Phosphor Icons](https://phosphoricons.com/) |
+| Gráficos | [Recharts](https://recharts.org/) |
+| Analytics | [PostHog](https://posthog.com/) (opcional, configurado via env) |
 | Backend | [Rust](https://www.rust-lang.org/) |
-| Database | SQLite via [rusqlite](https://github.com/rusqlite/rusqlite) (bundled) |
+| Banco de Dados | SQLite via [rusqlite](https://github.com/rusqlite/rusqlite) (bundled) |
 | Build Tool | [Vite](https://vite.dev/) |
 
 ---
 
 ## Download
 
-Pre-built installers for macOS and Windows are available on the [Releases page](https://github.com/redaantar/ckourse/releases).
+Instaladores pré-compilados para macOS e Windows estão disponíveis na [página de Releases](https://github.com/esdcti/ckourse-eduardo/releases).
 
 ---
 
-## Building from Source
+## Compilando a partir do Código-Fonte
 
-### Prerequisites
+### Pré-requisitos
 
-- [Rust](https://rustup.rs/) (latest stable)
+- [Rust](https://rustup.rs/) (stable mais recente)
 - [Node.js](https://nodejs.org/) (v20+)
-- Platform toolchain for Tauri — see [Tauri prerequisites](https://tauri.app/start/prerequisites/)
+- Toolchain da plataforma para Tauri — veja [pré-requisitos do Tauri](https://tauri.app/start/prerequisites/)
 
-### Development
+### Desenvolvimento
 
 ```bash
-# Clone the repository
-git clone https://github.com/redaantar/ckourse.git
-cd ckourse
+# Clone o repositório
+git clone https://github.com/esdcti/ckourse-eduardo.git
+cd ckourse-eduardo
 
-# Install frontend dependencies
+# Instale as dependências do frontend
 npm install
 
-# Run in development mode (macOS / Windows / Linux)
+# Execute em modo de desenvolvimento (macOS / Windows / Linux)
 npm run tauri dev
 
-# Build for production (produces installers for the current OS)
+# Build para produção (gera instaladores para o SO atual)
 npm run tauri build
 ```
 
-#### Platform-specific build targets
+#### Targets de build específicos por plataforma
 
-**macOS** — build a universal binary (Apple Silicon + Intel):
+**macOS** — build de binário universal (Apple Silicon + Intel):
 
 ```bash
-rustup target add x86_64-apple-darwin  # one-time setup
+rustup target add x86_64-apple-darwin  # configuração única
 npm run tauri build -- --target universal-apple-darwin
 ```
 
-Output: `.dmg` and `.app` under `src-tauri/target/universal-apple-darwin/release/bundle/`.
+Saída: `.dmg` e `.app` em `src-tauri/target/universal-apple-darwin/release/bundle/`.
 
-**Windows** — build an MSI and NSIS installer:
+**Windows** — build de instalador MSI e NSIS:
 
 ```powershell
 npm run tauri build
 ```
 
-Output: `.msi` and `.exe` under `src-tauri\target\release\bundle\`.
+Saída: `.msi` e `.exe` em `src-tauri\target\release\bundle\`.
 
 **Linux** — build `.deb` / `.AppImage`:
 
@@ -107,67 +107,64 @@ Output: `.msi` and `.exe` under `src-tauri\target\release\bundle\`.
 npm run tauri build
 ```
 
-Output: `.deb` and `.AppImage` under `src-tauri/target/release/bundle/`.
+Saída: `.deb` e `.AppImage` em `src-tauri/target/release/bundle/`.
 
-### Environment variables (optional)
+### Variáveis de ambiente (opcional)
 
-PostHog analytics is disabled unless you set the following in a `.env` file at the project root. Leave them unset to run the app with analytics off.
+O PostHog analytics é desabilitado a menos que você configure o seguinte em um arquivo `.env` na raiz do projeto. Deixe sem definir para executar o app sem analytics.
 
 ```bash
-VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=your_token
+VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=seu_token
 VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
-### CI
-
-CI builds macOS (universal) and Windows installers on tag push — see [`.github/workflows/build.yml`](.github/workflows/build.yml).
-
 ---
 
-## Project Structure
+## Estrutura do Projeto
 
 ```
 ckourse/
-├── src/                      # React frontend
+├── src/                      # Frontend React
 │   ├── components/
-│   │   ├── app-shell/        # Layout, sidebar, navigation
-│   │   ├── course-detail/    # Video player, notes, sections
-│   │   ├── dashboard/        # Course cards, stats, empty state
-│   │   └── ui/               # Shared UI primitives
-│   ├── pages/                # Route pages (Dashboard, CourseDetail, Notes,
+│   │   ├── app-shell/        # Layout, sidebar, navegação
+│   │   ├── course-detail/    # Player de vídeo, notas, seções
+│   │   ├── dashboard/        # Cards de cursos, stats, estado vazio
+│   │   └── ui/               # Componentes UI compartilhados
+│   ├── pages/                # Páginas de rotas (Dashboard, CourseDetail, Notes,
 │   │                         #   Bookmarks, Progress, ImportCourse, Settings)
 │   ├── hooks/                # Custom React hooks
-│   ├── lib/                  # Store, utilities, constants
-│   ├── assets/               # Lottie animations, icons
-│   └── types/                # TypeScript type definitions
-├── src-tauri/                # Rust backend
+│   ├── lib/                  # Store, utilitários, constantes
+│   ├── assets/               # Animações Lottie, ícones
+│   └── types/                # Definições de tipos TypeScript
+├── src-tauri/                # Backend Rust
 │   ├── src/
-│   │   ├── main.rs           # Tauri entry point
-│   │   ├── lib.rs            # Tauri app setup
-│   │   ├── db.rs             # SQLite schema and queries
-│   │   ├── parser.rs         # Course folder parser
-│   │   ├── subtitle.rs       # Subtitle file handling
+│   │   ├── main.rs           # Entry point do Tauri
+│   │   ├── lib.rs            # Setup do app Tauri
+│   │   ├── db.rs             # Schema SQLite e queries
+│   │   ├── parser.rs         # Parser de pasta de cursos
+│   │   ├── subtitle.rs       # Manipulação de legendas
 │   │   └── commands/         # courses.rs, lessons.rs, notes.rs, settings.rs
-│   └── tauri.conf.json       # Tauri configuration
-└── public/                   # Static assets
+│   └── tauri.conf.json       # Configuração do Tauri
+└── public/                   # Assets estáticos
 ```
 
 ---
 
-## Contributing
+## Contribuindo
 
-Ckourse is in early development. Contributions, issues, and feature requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, code conventions, and commit style, and the [Code of Conduct](CODE_OF_CONDUCT.md) for community expectations.
+O Ckourse está em desenvolvimento inicial. Contribuições, issues e feature requests são bem-vindas. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para o fluxo de trabalho, convenções de código e estilo de commit, e o [Code of Conduct](CODE_OF_CONDUCT.md) para expectativas da comunidade.
 
-To report a security vulnerability, see [SECURITY.md](SECURITY.md).
+Para reportar uma vulnerabilidade de segurança, veja [SECURITY.md](SECURITY.md).
 
 ---
 
-## License
+## Licença
 
-MIT — free to use, modify, and distribute.
+MIT — livre para usar, modificar e distribuir.
 
 ---
 
 ## Links
 
-- 🐛 Issues: [github.com/redaantar/ckourse/issues](https://github.com/redaantar/ckourse/issues)
+- 🐛 Issues: [github.com/esdcti/ckourse-eduardo/issues](https://github.com/esdcti/ckourse-eduardo/issues)
+- 🇬🇧 [English README](README-EN.md)
