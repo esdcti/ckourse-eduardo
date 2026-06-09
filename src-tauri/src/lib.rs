@@ -7,6 +7,10 @@ mod video_protocol;
 
 use db::DbState;
 use tauri::Manager;
+use std::path::PathBuf;
+
+/// Stores the default app data directory for reference when changing custom paths.
+pub struct AppDataDir(pub PathBuf);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -17,15 +21,12 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
-            let data_dir = if let Some(portable_dir) = portable::get_portable_dir() {
-                portable_dir
-            } else {
-                app.path()
-                    .app_data_dir()
-                    .expect("failed to resolve app data dir")
-            };
+            let app_data_dir = app
+                .path()
+                .app_data_dir()
+                .expect("failed to resolve app data dir");
 
-            let is_portable = portable::is_portable();
+            let (data_dir, is_portable, custom_dir) = portable::resolve_data_dir(&app_data_dir);
 
             let conn = db::init_db(&data_dir).expect("failed to initialize database");
 
@@ -33,7 +34,14 @@ pub fn run() {
                 conn: std::sync::Mutex::new(conn),
             });
 
-            app.manage(portable::PortableState { is_portable, data_dir });
+            app.manage(portable::PortableState {
+                is_portable,
+                data_dir,
+                custom_data_dir: std::sync::Mutex::new(custom_dir),
+            });
+
+            // Store the app_data_dir for later use (changing custom dir)
+            app.manage(AppDataDir(app_data_dir));
 
             Ok(())
         })
@@ -72,6 +80,7 @@ pub fn run() {
             commands::delete_custom_category,
             commands::search_content,
             commands::get_portable_info,
+            commands::set_custom_data_dir,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

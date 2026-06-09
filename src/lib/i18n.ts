@@ -151,6 +151,12 @@ export interface Translations {
   // Sidebar
   dashboard: string;
 
+  // Course Card
+  startCourse: string;
+  reviewCourse: string;
+  continue_: string;
+  unknownAuthor: string;
+
   // Language
   language: string;
   languageDesc: string;
@@ -286,6 +292,11 @@ const en: Translations = {
 
   dashboard: "Dashboard",
 
+  startCourse: "Start Course",
+  reviewCourse: "Review Course",
+  continue_: "Continue",
+  unknownAuthor: "Unknown author",
+
   language: "Language",
   languageDesc: "Choose your preferred language",
 };
@@ -419,6 +430,11 @@ const ptBR: Translations = {
   other: "Outros",
 
   dashboard: "Painel",
+
+  startCourse: "Iniciar Curso",
+  reviewCourse: "Revisar Curso",
+  continue_: "Continuar",
+  unknownAuthor: "Autor desconhecido",
 
   language: "Idioma",
   languageDesc: "Escolha seu idioma preferido",

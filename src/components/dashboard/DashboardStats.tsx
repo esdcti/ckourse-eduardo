@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { DashboardStats } from "@/types";
 import { EASE_OUT } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import level1 from "@/assets/icons/level_1.svg";
 import level2 from "@/assets/icons/level_2.svg";
 import level3 from "@/assets/icons/level_3.svg";
@@ -200,6 +201,7 @@ interface DashboardStatsBarProps {
 }
 
 export function DashboardStatsBar({ stats, className }: DashboardStatsBarProps) {
+  const t = useI18n();
   return (
     <div className={cn("grid grid-cols-2 gap-3 lg:grid-cols-6", className)}>
       <LevelCard
@@ -209,27 +211,27 @@ export function DashboardStatsBar({ stats, className }: DashboardStatsBarProps) 
       />
       <StatCard
         icon={<Fire className="size-4 text-orange-400" weight="fill" />}
-        label="Day streak"
+        label={t.currentStreak}
         value={stats.currentStreak}
         index={1}
       />
       <StatCard
         icon={<CheckCircle className="size-4 text-primary" weight="fill" />}
-        label="Lessons done"
+        label={t.lessonsCompleted}
         value={stats.completedLessons}
         sub={`/ ${stats.totalLessons}`}
         index={2}
       />
       <StatCard
         icon={<GraduationCap className="size-4 text-info" weight="fill" />}
-        label="Courses done"
+        label={t.totalCourses}
         value={stats.completedCourses}
         sub={`/ ${stats.totalCourses}`}
         index={3}
       />
       <StatCard
         icon={<Clock className="size-4 text-muted-foreground" />}
-        label="Watch time"
+        label={t.totalWatchTime}
         value={formatWatchTime(stats.totalWatchTimeMins)}
         index={4}
       />

@@ -14,6 +14,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { Course, FavoriteLesson } from "@/types";
 import { getBookmarkedCourses, getAllFavorites, toggleFavorite } from "@/lib/store";
 import { EASE_OUT } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 
 interface BookmarksProps {
   className?: string;
@@ -58,6 +59,7 @@ export function Bookmarks({ className }: BookmarksProps) {
   }
 
   const isEmpty = courses.length === 0 && favorites.length === 0;
+  const t = useI18n();
 
   return (
     <div className={cn("mx-auto max-w-6xl", className)}>
@@ -70,10 +72,10 @@ export function Bookmarks({ className }: BookmarksProps) {
             <BookmarkSimple className="size-6 text-muted-foreground" />
           </div>
           <h2 className="font-heading text-lg font-bold text-foreground">
-            No bookmarks yet
+            {t.noBookmarks}
           </h2>
           <p className="max-w-xs font-sans text-sm text-muted-foreground">
-            Bookmark courses and favorite videos to find them quickly here.
+            {t.bookmarkedCourses === "Cursos Marcados" ? "Marque cursos e favorite vídeos para encontrá-los rapidamente aqui." : "Bookmark courses and favorite videos to find them quickly here."}
           </p>
         </div>
       ) : (
@@ -89,7 +91,7 @@ export function Bookmarks({ className }: BookmarksProps) {
               )}
             >
               <BookmarkSimple className="size-3.5" />
-              Courses
+              {t.courses}
               {courses.length > 0 && (
                 <span className="flex size-4 items-center justify-center rounded-full border border-border bg-muted font-mono text-[9px] font-medium text-muted-foreground">
                   {courses.length}
@@ -106,7 +108,7 @@ export function Bookmarks({ className }: BookmarksProps) {
               )}
             >
               <Heart className="size-3.5" />
-              Favorites
+              {t.favorites}
               {favorites.length > 0 && (
                 <span className="flex size-4 items-center justify-center rounded-full border border-border bg-muted font-mono text-[9px] font-medium text-muted-foreground">
                   {favorites.length}

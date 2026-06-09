@@ -23,7 +23,8 @@ import {
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { LibraryStats } from "@/types";
-import { getLibraryStats, deleteAllData } from "@/lib/store";
+import { getLibraryStats, deleteAllData, getPortableInfo, setCustomDataDir } from "@/lib/store";
+import { open } from "@tauri-apps/plugin-dialog";
 import { EASE_OUT } from "@/lib/constants";
 import { useUpdater } from "@/hooks/useUpdater";
 import { getVersion } from "@tauri-apps/api/app";
@@ -285,6 +286,88 @@ interface SettingsProps {
   className?: string;
 }
 
+function DataDirPicker() {
+  const t = useI18n();
+  const [info, setInfo] = useState<{ isPortable: boolean; dataDir: string; customDataDir: string | null } | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    getPortableInfo().then(setInfo).catch(() => {});
+  }, []);
+
+  const handleChooseFolder = async () => {
+    const selected = await open({
+      directory: true,
+      multiple: false,
+      title: "Escolher pasta para o banco de dados",
+    });
+    if (selected) {
+      try {
+        const msg = await setCustomDataDir(selected as string);
+        setMessage(msg);
+        setInfo((prev) => prev ? { ...prev, customDataDir: selected as string } : prev);
+      } catch (err) {
+        setMessage(typeof err === "string" ? err : "Erro ao definir pasta");
+      }
+    }
+  };
+
+  const handleReset = async () => {
+    try {
+      const msg = await setCustomDataDir("");
+      setMessage(msg);
+      setInfo((prev) => prev ? { ...prev, customDataDir: null } : prev);
+    } catch (err) {
+      setMessage(typeof err === "string" ? err : "Erro ao resetar");
+    }
+  };
+
+  if (!info) return null;
+
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between gap-3 rounded-lg bg-secondary/50 px-3 py-2.5">
+        <div>
+          <div className="font-sans text-xs font-medium text-foreground">
+            {info.isPortable ? t.portableModeActive : "Local do banco de dados"}
+          </div>
+          {info.customDataDir && (
+            <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+              Customizado: {info.customDataDir}
+            </div>
+          )}
+        </div>
+        {!info.isPortable && (
+          <div className="flex gap-2">
+            {info.customDataDir && (
+              <button
+                onClick={handleReset}
+                className="shrink-0 rounded-lg border border-border bg-secondary px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Restaurar padrão
+              </button>
+            )}
+            <button
+              onClick={handleChooseFolder}
+              className="shrink-0 rounded-lg border border-border bg-secondary px-3 py-1.5 font-sans text-xs font-medium text-foreground transition-colors hover:bg-secondary/70"
+            >
+              <span className="flex items-center gap-1.5">
+                <Folder className="size-3.5" />
+                Alterar local
+              </span>
+            </button>
+          </div>
+        )}
+      </div>
+      {message && (
+        <div className="mt-2 rounded-lg bg-primary/10 px-3 py-2 font-sans text-xs text-primary">
+          {message}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function UpdatesSection({ index }: { index: number }) {
   const updater = useUpdater();
   const [appVersion, setAppVersion] = useState<string>("");
@@ -506,32 +589,32 @@ export function Settings({ className }: SettingsProps) {
             <div className="grid grid-cols-3 gap-2.5">
               <StatChip
                 icon={<Stack className="size-3.5" />}
-                label="Courses"
+                label={t.courses}
                 value={stats.totalCourses}
               />
               <StatChip
                 icon={<MonitorPlay className="size-3.5" />}
-                label="Lessons"
+                label={t.lessons}
                 value={stats.totalLessons}
               />
               <StatChip
                 icon={<Notepad className="size-3.5" />}
-                label="Notes"
+                label={t.notes}
                 value={stats.totalNotes}
               />
               <StatChip
                 icon={<BookmarkSimple className="size-3.5" />}
-                label="Bookmarks"
+                label={t.bookmarks}
                 value={stats.totalBookmarks}
               />
               <StatChip
                 icon={<Heart className="size-3.5" />}
-                label="Favorites"
+                label={t.favorites}
                 value={stats.totalFavorites}
               />
               <StatChip
                 icon={<Folder className="size-3.5" />}
-                label="Sections"
+                label={t.sections}
                 value={stats.totalSections}
               />
             </div>
@@ -542,6 +625,7 @@ export function Settings({ className }: SettingsProps) {
               {stats?.dbPath}
             </div>
           </div>
+          <DataDirPicker />
         </SectionCard>
 
         <UpdatesSection index={3} />
@@ -573,7 +657,7 @@ export function Settings({ className }: SettingsProps) {
                 "transition-colors hover:bg-destructive/10",
               )}
             >
-              Delete all
+              {t.deleteAllData}
             </button>
           </div>
         </SectionCard>

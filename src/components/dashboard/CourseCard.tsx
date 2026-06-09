@@ -7,6 +7,7 @@ import { useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { Course } from "@/types";
 import { toggleBookmark } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 
 function getStatusBadge(status: Course["status"]) {
   switch (status) {
@@ -47,6 +48,7 @@ function formatLastWatched(dateStr: string | null): string {
 
 export function CourseCard({ course, onBookmarkChange }: { course: Course; onBookmarkChange?: () => void }) {
   const location = useLocation();
+  const t = useI18n();
   const percentage = Math.round(
     (course.completedLessons / course.totalLessons) * 100
   );
@@ -90,7 +92,7 @@ export function CourseCard({ course, onBookmarkChange }: { course: Course; onBoo
 
             <div className="flex items-center justify-between">
               <p className="font-sans text-xs text-muted-foreground">
-                {course.author || "Unknown author"}
+                {course.author || t.unknownAuthor}
               </p>
               <span className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
                 <Clock className="size-3" />
@@ -101,7 +103,7 @@ export function CourseCard({ course, onBookmarkChange }: { course: Course; onBoo
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs font-medium text-muted-foreground">
-                  {course.completedLessons}/{course.totalLessons} lessons
+                  {course.completedLessons}/{course.totalLessons} {t.lessons.toLowerCase()}
                 </span>
                 <span className="font-mono text-xs font-medium text-muted-foreground">
                   {percentage}%
@@ -116,7 +118,7 @@ export function CourseCard({ course, onBookmarkChange }: { course: Course; onBoo
                 <div className="absolute inset-0 bg-linear-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity duration-150 group-hover:opacity-100" style={{ transitionTimingFunction: "cubic-bezier(0.2, 0, 0, 1)" }} />
               </div>
               <div className="flex items-center justify-center gap-1.5 font-sans text-xs font-semibold text-primary">
-                {course.status === "not-started" ? "Start Course" : course.status === "completed" ? "Review Course" : "Continue"}
+                {course.status === "not-started" ? t.startCourse : course.status === "completed" ? t.reviewCourse : t.continue_}
                 <ArrowRight
                   className="size-3.5 transition-transform duration-150 group-hover:translate-x-1"
                   style={{ transitionTimingFunction: "cubic-bezier(0.2, 0, 0, 1)" }}

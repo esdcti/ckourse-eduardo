@@ -178,8 +178,13 @@ export async function searchContent(query: string): Promise<SearchResult[]> {
 export interface PortableInfo {
   isPortable: boolean;
   dataDir: string;
+  customDataDir: string | null;
 }
 
 export async function getPortableInfo(): Promise<PortableInfo> {
   return invoke<PortableInfo>("get_portable_info");
+}
+
+export async function setCustomDataDir(path: string): Promise<string> {
+  return invoke<string>("set_custom_data_dir", { path });
 }

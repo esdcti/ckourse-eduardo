@@ -6,6 +6,19 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ---
 
+## [1.2.0] - 2026-06-09
+
+### Adicionado
+- **Escolher local do banco de dados**: botão nas Configurações → Biblioteca para selecionar uma pasta customizada (pen drive, cartão SD, pasta na nuvem)
+- **Restaurar padrão**: botão para voltar o banco ao local padrão (AppData)
+- Mensagem de feedback ao alterar local do banco (pede reinício do app)
+
+### Melhorado
+- Módulo portátil agora suporta 3 modos: padrão, `.portable`, e pasta customizada
+- Lógica de resolução de data_dir com prioridade: portátil > customizado > padrão
+
+---
+
 ## [1.1.0] - 2026-06-09
 
 ### Adicionado

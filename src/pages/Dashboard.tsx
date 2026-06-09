@@ -64,6 +64,19 @@ export function Dashboard({ className }: DashboardProps) {
   const [filterHeight, setFilterHeight] = useState(0);
   const t = useI18n();
 
+  const statusLabelsI18n: Record<CourseStatus | "all", string> = {
+    all: t.allStatus,
+    "in-progress": t.inProgress,
+    completed: t.completed,
+    "not-started": t.notStarted,
+  };
+
+  const sortLabelsI18n: Record<SortOption, string> = {
+    recent: t.recentlyWatched,
+    progress: t.progressSort,
+    title: t.titleAZ,
+  };
+
   // Derive filter state from URL search params
   const search = searchParams.get("q") ?? "";
   const category = (searchParams.get("cat") ?? "all") as CourseCategory | "all";
@@ -293,7 +306,7 @@ export function Dashboard({ className }: DashboardProps) {
                     : "border-border/50 bg-secondary text-muted-foreground hover:text-foreground"
                 )}
               >
-                {statusLabels[s]}
+                {statusLabelsI18n[s]}
               </button>
             ))}
           </div>
@@ -310,7 +323,7 @@ export function Dashboard({ className }: DashboardProps) {
             )}
           >
             <BookmarkSimple className="size-3" weight={bookmarkFilter ? "fill" : "regular"} />
-            Bookmarked
+            {t.bookmarked}
           </button>
 
           <div className="ml-auto flex items-center gap-2">
@@ -320,9 +333,9 @@ export function Dashboard({ className }: DashboardProps) {
               onChange={(e) => setSort(e.target.value as SortOption)}
               className="bg-transparent font-sans text-xs font-medium text-muted-foreground focus:outline-none"
             >
-              {(Object.keys(sortLabels) as SortOption[]).map((s) => (
+              {(Object.keys(sortLabelsI18n) as SortOption[]).map((s) => (
                 <option key={s} value={s}>
-                  {sortLabels[s]}
+                  {sortLabelsI18n[s]}
                 </option>
               ))}
             </select>
