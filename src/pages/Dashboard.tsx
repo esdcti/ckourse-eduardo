@@ -36,19 +36,6 @@ function getCategoryLabel(cat: string): string {
   return builtinCategoryLabels[cat as CourseCategory | "all"] ?? cat;
 }
 
-const statusLabels: Record<CourseStatus | "all", string> = {
-  all: "All Status",
-  "in-progress": "In Progress",
-  completed: "Completed",
-  "not-started": "Not Started",
-};
-
-const sortLabels: Record<SortOption, string> = {
-  recent: "Recently Watched",
-  progress: "Progress",
-  title: "Title A-Z",
-};
-
 interface DashboardProps {
   className?: string;
 }
@@ -295,7 +282,7 @@ export function Dashboard({ className }: DashboardProps) {
           <div className="h-5 w-px bg-border" />
 
           <div className="flex items-center gap-1.5">
-            {(Object.keys(statusLabels) as (CourseStatus | "all")[]).map((s) => (
+            {(Object.keys(statusLabelsI18n) as (CourseStatus | "all")[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setStatus(s)}
