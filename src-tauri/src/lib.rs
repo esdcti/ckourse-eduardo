@@ -81,6 +81,13 @@ pub fn run() {
             commands::search_content,
             commands::get_portable_info,
             commands::set_custom_data_dir,
+            commands::export_database,
+            commands::import_database,
+            commands::get_course_tags,
+            commands::set_course_tags,
+            commands::get_all_tags,
+            commands::check_ytdlp,
+            commands::download_youtube_playlist,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

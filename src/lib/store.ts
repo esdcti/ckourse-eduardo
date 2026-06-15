@@ -185,6 +185,39 @@ export async function getPortableInfo(): Promise<PortableInfo> {
   return invoke<PortableInfo>("get_portable_info");
 }
 
+export async function exportDatabase(destination: string): Promise<string> {
+  return invoke<string>("export_database", { destination });
+}
+
+export async function importDatabase(source: string): Promise<string> {
+  return invoke<string>("import_database", { source });
+}
+
+export async function getCourseTags(courseId: number): Promise<string[]> {
+  return invoke<string[]>("get_course_tags", { courseId });
+}
+
+export async function setCourseTags(courseId: number, tags: string[]): Promise<void> {
+  return invoke("set_course_tags", { courseId, tags });
+}
+
+export async function getAllTags(): Promise<string[]> {
+  return invoke<string[]>("get_all_tags");
+}
+
+export interface YtDlpStatus {
+  available: boolean;
+  version: string | null;
+}
+
+export async function checkYtdlp(): Promise<YtDlpStatus> {
+  return invoke<YtDlpStatus>("check_ytdlp");
+}
+
+export async function downloadYoutubePlaylist(url: string, outputDir: string): Promise<string> {
+  return invoke<string>("download_youtube_playlist", { url, outputDir });
+}
+
 export async function setCustomDataDir(path: string): Promise<string> {
   return invoke<string>("set_custom_data_dir", { path });
 }

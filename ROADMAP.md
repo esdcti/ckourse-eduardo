@@ -27,37 +27,13 @@ Melhorias rápidas com impacto direto na experiência diária de estudo.
 
 Features que envolvem mais lógica mas resolvem dores reais de quem estuda TI.
 
-| # | Feature | Por quê? |
-|---|---------|----------|
-| 11 | **Banco de dados portátil (completo)** | Exportar/importar o banco junto com os cursos — migrar entre PCs sem perder progresso |
-| 12 | **Visualizador de PDF integrado** | Ler slides, cheatsheets e documentação sem sair do app |
-| 13 | **Tags customizadas** | Organizar por tech: "React", "Docker", "SQL", "AWS" — mais útil que categorias genéricas |
-| 14 | **Meta diária de estudo** | "Estudar 45min/dia" com streak e notificação — consistência > intensidade |
-| 15 | **Histórico com heatmap** | Visualizar atividade estilo GitHub — quais dias você estudou, quantas aulas |
-| 16 | **Detecção de novos vídeos** | Baixou aulas novas na pasta? O app detecta e oferece adicionar ao curso |
-| 17 | **Busca dentro das notas** | "Onde eu anotei sobre docker-compose?" — busca full-text nas suas notas |
-| 18 | **Marcadores no vídeo** | Bookmarks de timestamp: "05:23 - Explicação de useEffect" — navega direto ao ponto |
-| 19 | **Playlists de revisão** | Juntar aulas específicas de diferentes cursos: "Revisar: Hooks + Context + Redux" |
-| 20 | **Modo foco** | Oculta sidebar, mostra só vídeo + notas. Ideal pra monitor pequeno |
-| 21 | **Importar playlist do YouTube** | Integração com yt-dlp para baixar playlist e importar como curso automaticamente |
-| 22 | **Suporte a áudio** | Importar podcasts técnicos (mp3) como "cursos" — útil pra audiobooks e tech talks |
-
----
-
-## 🔴 Alta Complexidade (1-3 semanas cada)
-
-Features ambiciosas que transformam o app numa plataforma completa de estudo.
-
-| # | Feature | Por quê? |
-|---|---------|----------|
-| 23 | **Transcrição automática com Whisper** | Gerar legendas localmente para cursos sem legenda — pesquisar conteúdo falado |
-| 24 | **Resumo com IA local (Ollama)** | Resumir aula automaticamente a partir da transcrição. Revisão em 2 min em vez de 45 |
-| 25 | **Flashcards de revisão** | Gerar cards de revisão a partir das notas. Algoritmo de repetição espaçada |
-| 26 | **Leitor de código integrado** | Abrir arquivos de código-fonte do curso com syntax highlighting + copy |
-| 27 | **Sincronização entre devices** | Progresso sincronizado via pasta na nuvem (OneDrive/Drive) ou servidor |
-| 28 | **Certificados de conclusão** | Gerar PDF bonito ao terminar curso — útil para documentação pessoal |
-| 29 | **Gamificação** | XP, níveis, conquistas ("Maratonista: 10 aulas em 1 dia", "Consistente: 30 dias seguidos") |
-| 30 | **Plugin de integração com IDE** | Extensão VS Code que mostra progresso do curso e permite marcar aulas como concluídas |
+| # | Feature | Por quê? | Status |
+|---|---------|----------|--------|
+| 11 | **Banco de dados portátil (completo)** | Exportar/importar o banco junto com os cursos — migrar entre PCs sem perder progresso | ✅ v1.5.0 |
+| 12 | **Visualizador de PDF integrado** | Ler slides, cheatsheets e documentação sem sair do app | 🔜 (próxima versão) |
+| 13 | **Tags customizadas** | Organizar por tech: "React", "Docker", "SQL", "AWS" — mais útil que categorias genéricas | ✅ v1.5.0 |
+| 14 | **Modo foco** | Oculta sidebar, mostra só vídeo + notas. Ideal pra monitor pequeno | ✅ v1.5.0 |
+| 15 | **Importar playlist do YouTube** | Integração com yt-dlp para baixar playlist e importar como curso automaticamente | ✅ v1.5.0 (backend) |
 
 ---
 

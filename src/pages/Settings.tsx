@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { usePageVisible } from "@/hooks/usePageVisible";
 import { useSettings } from "@/hooks/useSettings";
 import {
@@ -625,6 +626,44 @@ export function Settings({ className }: SettingsProps) {
             </div>
           </div>
           <DataDirPicker />
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={async () => {
+                const { save } = await import("@tauri-apps/plugin-dialog");
+                const dest = await save({ defaultPath: "ckourse-backup.db", filters: [{ name: "SQLite", extensions: ["db"] }] });
+                if (dest) {
+                  try {
+                    const { exportDatabase } = await import("@/lib/store");
+                    const msg = await exportDatabase(dest);
+                    toast.success(msg);
+                  } catch (err) {
+                    toast.error(typeof err === "string" ? err : "Erro ao exportar");
+                  }
+                }
+              }}
+              className="flex-1 rounded-lg border border-border bg-secondary px-3 py-2 font-sans text-xs font-medium text-foreground transition-colors hover:bg-secondary/70"
+            >
+              Exportar banco
+            </button>
+            <button
+              onClick={async () => {
+                const { open: openFile } = await import("@tauri-apps/plugin-dialog");
+                const source = await openFile({ filters: [{ name: "SQLite", extensions: ["db"] }] });
+                if (source) {
+                  try {
+                    const { importDatabase } = await import("@/lib/store");
+                    const msg = await importDatabase(source as string);
+                    toast.success(msg);
+                  } catch (err) {
+                    toast.error(typeof err === "string" ? err : "Erro ao importar");
+                  }
+                }
+              }}
+              className="flex-1 rounded-lg border border-border bg-secondary px-3 py-2 font-sans text-xs font-medium text-foreground transition-colors hover:bg-secondary/70"
+            >
+              Importar banco
+            </button>
+          </div>
         </SectionCard>
 
         <UpdatesSection index={3} />

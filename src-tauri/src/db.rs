@@ -279,6 +279,18 @@ pub fn init_db(app_data_dir: &Path) -> SqlResult<Connection> {
         );",
     );
 
+    // Course tags table migration
+    let _ = conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS course_tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+            tag TEXT NOT NULL,
+            UNIQUE(course_id, tag)
+        );
+        CREATE INDEX IF NOT EXISTS idx_course_tags_course_id ON course_tags(course_id);
+        CREATE INDEX IF NOT EXISTS idx_course_tags_tag ON course_tags(tag);",
+    );
+
     Ok(conn)
 }
 

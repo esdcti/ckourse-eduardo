@@ -17,6 +17,7 @@ import {
   SidebarSimpleIcon as SidebarSimple,
   BookmarkSimpleIcon as BookmarkSimple,
   HeartIcon as Heart,
+  EyeIcon as Eye,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -268,6 +269,7 @@ function CourseDetailInner({
   const [showEditor, setShowEditor] = useState(false);
   const [autoPlay, setAutoPlay] = useState(false);
   const [curriculumOpen, setCurriculumOpen] = useState(true);
+  const [focusMode, setFocusMode] = useState(false);
   const [videoTime, setVideoTime] = useState(0);
   const videoTimeRef = useRef(0);
   const videoPlayerRef = useRef<VideoPlayerHandle>(null);
@@ -576,9 +578,12 @@ function CourseDetailInner({
       <div
         className="mb-4 flex items-center justify-between"
         style={{
-          opacity: mounted ? 1 : 0,
+          opacity: mounted && !focusMode ? 1 : 0,
+          maxHeight: focusMode ? 0 : 60,
+          marginBottom: focusMode ? 0 : 16,
+          overflow: "hidden",
           transform: mounted ? "translateY(0)" : "translateY(8px)",
-          transition: `opacity 500ms ${EASE_OUT}, transform 500ms ${EASE_OUT}`,
+          transition: `opacity 500ms ${EASE_OUT}, transform 500ms ${EASE_OUT}, max-height 400ms ${SNAPPY}, margin 400ms ${SNAPPY}`,
         }}
       >
         <Link
@@ -625,6 +630,16 @@ function CourseDetailInner({
           >
             <PencilSimple className="size-3.5" />
             {t.edit}
+          </button>
+          <button
+            onClick={() => setFocusMode((f) => !f)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 font-sans text-xs font-medium transition-colors hover:bg-secondary hover:text-foreground",
+              focusMode ? "text-primary border-primary/25 bg-primary/10" : "text-muted-foreground",
+            )}
+            style={{ transitionTimingFunction: SNAPPY }}
+          >
+            <Eye className="size-3.5" />
           </button>
         </div>
       </div>
@@ -812,7 +827,7 @@ function CourseDetailInner({
         <div
           className="lg:shrink-0 overflow-clip self-start sticky top-4"
           style={{
-            width: curriculumOpen ? 320 : 0,
+            width: curriculumOpen && !focusMode ? 320 : 0,
             opacity: mounted ? 1 : 0,
             transform: mounted ? "translateY(0)" : "translateY(12px)",
             transition: `width 400ms ${SNAPPY}, opacity 600ms ${EASE_OUT} 160ms, transform 600ms ${EASE_OUT} 160ms`,

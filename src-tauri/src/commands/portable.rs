@@ -45,3 +45,35 @@ pub fn set_custom_data_dir(
 
     Ok("Reinicie o app para aplicar a mudança.".to_string())
 }
+
+#[tauri::command]
+pub fn export_database(
+    portable_state: tauri::State<'_, PortableState>,
+    destination: String,
+) -> Result<String, String> {
+    let db_path = portable_state.data_dir.join("ckourse.db");
+    if !db_path.exists() {
+        return Err("Banco de dados não encontrado.".to_string());
+    }
+    std::fs::copy(&db_path, &destination).map_err(|e| format!("Erro ao exportar: {}", e))?;
+    Ok(format!("Banco exportado para: {}", destination))
+}
+
+#[tauri::command]
+pub fn import_database(
+    portable_state: tauri::State<'_, PortableState>,
+    source: String,
+) -> Result<String, String> {
+    let source_path = std::path::Path::new(&source);
+    if !source_path.exists() {
+        return Err("Arquivo de origem não encontrado.".to_string());
+    }
+    let db_path = portable_state.data_dir.join("ckourse.db");
+    // Create backup of current DB
+    let backup_path = portable_state.data_dir.join("ckourse_backup.db");
+    if db_path.exists() {
+        std::fs::copy(&db_path, &backup_path).map_err(|e| format!("Erro ao criar backup: {}", e))?;
+    }
+    std::fs::copy(source_path, &db_path).map_err(|e| format!("Erro ao importar: {}", e))?;
+    Ok("Banco importado com sucesso. Reinicie o app.".to_string())
+}
