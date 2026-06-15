@@ -65,10 +65,8 @@ pub async fn download_youtube_playlist(
     let mut child = Command::new("yt-dlp")
         .args([
             "--yes-playlist",
-            "-f",
-            "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-            "--merge-output-format",
-            "mp4",
+            "-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b",
+            "--merge-output-format", "mp4",
             "--write-subs",
             "--sub-langs",
             "all",
@@ -76,6 +74,7 @@ pub async fn download_youtube_playlist(
             "vtt",
             "--write-thumbnail",
             "--newline",
+            "--no-colors",
             "--output",
             &output_template,
             &url,
@@ -83,7 +82,21 @@ pub async fn download_youtube_playlist(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("Erro ao executar yt-dlp: {}", e))?;
+        .map_err(|e| format!("Erro ao executar yt-dlp: {}. Verifique se está instalado e no PATH.", e))?;
+
+    // Read stderr in a separate thread to avoid deadlock
+    let stderr_handle = child.stderr.take().map(|stderr| {
+        std::thread::spawn(move || {
+            let reader = BufReader::new(stderr);
+            let mut errors = Vec::new();
+            for line in reader.lines().map_while(Result::ok) {
+                if !line.trim().is_empty() {
+                    errors.push(line);
+                }
+            }
+            errors
+        })
+    });
 
     // Read stdout for progress
     if let Some(stdout) = child.stdout.take() {
@@ -154,6 +167,11 @@ pub async fn download_youtube_playlist(
 
     let status = child.wait().map_err(|e| format!("Erro ao aguardar yt-dlp: {}", e))?;
 
+    // Collect stderr errors
+    let stderr_lines = stderr_handle
+        .and_then(|h| h.join().ok())
+        .unwrap_or_default();
+
     if status.success() {
         let _ = app.emit("ytdlp-progress", YtDlpProgress {
             status: "done".to_string(),
@@ -165,14 +183,18 @@ pub async fn download_youtube_playlist(
         });
         Ok(output_dir)
     } else {
+        let error_msg = stderr_lines
+            .last()
+            .cloned()
+            .unwrap_or_else(|| "Erro desconhecido".to_string());
         let _ = app.emit("ytdlp-progress", YtDlpProgress {
             status: "error".to_string(),
-            message: "Download falhou".to_string(),
+            message: error_msg.clone(),
             percent: 0.0,
             video_title: None,
             video_index: None,
             total_videos: None,
         });
-        Err("yt-dlp falhou. Verifique a URL e tente novamente.".to_string())
+        Err(format!("yt-dlp falhou: {}", error_msg))
     }
 }
