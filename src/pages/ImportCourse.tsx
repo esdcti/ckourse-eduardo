@@ -42,7 +42,7 @@ import { cn } from "@/lib/utils";
 import { SquircleButton } from "@/components/ui/SquircleButton";
 import type { CourseCategory, ParsedCourse, ParsedSection, ParsedLesson } from "@/types";
 import { selectCourseFolder, parseCourseFolder } from "@/lib/courseParser";
-import { importCourse, getCustomCategories, addCustomCategory, deleteCustomCategory } from "@/lib/store";
+import { importCourse, getCustomCategories, addCustomCategory, deleteCustomCategory, checkYtdlp, downloadYoutubePlaylist } from "@/lib/store";
 import { EASE_OUT } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 
@@ -87,12 +87,15 @@ export function ImportCourse({ className }: ImportCourseProps) {
   const navigate = useNavigate();
   const t = useI18n();
   const [step, setStep] = useState<"select" | "configure">("select");
+  const [source, setSource] = useState<"folder" | "youtube">("folder");
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [parsedCourse, setParsedCourse] = useState<ParsedCourse | null>(null);
   const [structureIds, setStructureIds] = useState<StructureIds>({ sections: [], lessons: [] });
   const [isImporting, setIsImporting] = useState(false);
+  const [ytUrl, setYtUrl] = useState("");
+  const [ytDownloading, setYtDownloading] = useState(false);
 
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -155,6 +158,32 @@ export function ImportCourse({ className }: ImportCourseProps) {
           }
         }
       }
+    }
+  };
+
+  const handleYoutubeDownload = async () => {
+    if (!ytUrl.trim()) return;
+    setParseError(null);
+    setYtDownloading(true);
+
+    try {
+      const status = await checkYtdlp();
+      if (!status.available) {
+        setParseError("yt-dlp não encontrado. Instale-o e adicione ao PATH: https://github.com/yt-dlp/yt-dlp");
+        return;
+      }
+
+      // Ask user for output folder
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const outputDir = await open({ directory: true, multiple: false, title: "Pasta de destino para o download" });
+      if (!outputDir) return;
+
+      const folderPath = await downloadYoutubePlaylist(ytUrl.trim(), outputDir as string);
+      await handleParseCourse(folderPath);
+    } catch (err) {
+      setParseError(typeof err === "string" ? err : "Erro ao baixar playlist do YouTube");
+    } finally {
+      setYtDownloading(false);
     }
   };
 
@@ -272,7 +301,40 @@ export function ImportCourse({ className }: ImportCourseProps) {
       </div>
 
       {step === "select" ? (
-        <FolderSelectStep
+        <div>
+          <div className="mb-4 flex items-center gap-2" style={{ animation: `card-in 350ms ${EASE_OUT} both` }}>
+            <button
+              onClick={() => setSource("folder")}
+              className={cn(
+                "rounded-lg px-4 py-2 font-sans text-sm font-medium transition-colors",
+                source === "folder"
+                  ? "bg-primary/15 text-primary border border-primary/25"
+                  : "text-muted-foreground hover:text-foreground border border-border",
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <FolderOpen className="size-4" />
+                {t.browseFolder}
+              </span>
+            </button>
+            <button
+              onClick={() => setSource("youtube")}
+              className={cn(
+                "rounded-lg px-4 py-2 font-sans text-sm font-medium transition-colors",
+                source === "youtube"
+                  ? "bg-primary/15 text-primary border border-primary/25"
+                  : "text-muted-foreground hover:text-foreground border border-border",
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <FileVideo className="size-4" />
+                YouTube
+              </span>
+            </button>
+          </div>
+
+          {source === "folder" ? (
+            <FolderSelectStep
           isDragOver={isDragOver}
           isLoading={isLoading}
           error={parseError}
@@ -283,7 +345,63 @@ export function ImportCourse({ className }: ImportCourseProps) {
           onDragLeave={() => setIsDragOver(false)}
           onDrop={handleDrop}
           onBrowse={handleFolderSelect}
-        />
+            />
+          ) : (
+            <div style={{ animation: `card-in 350ms ${EASE_OUT} 50ms both` }}>
+              <div className="group relative">
+                <div className="squircle-subtle absolute inset-0 bg-border" />
+                <div className="squircle-subtle absolute inset-px bg-card" />
+                <div className="relative flex flex-col items-center gap-4 px-6 py-12">
+                  <div className="flex size-16 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
+                    <FileVideo className="size-7" />
+                  </div>
+                  <div className="w-full max-w-md">
+                    <label className="mb-2 block font-sans text-xs font-medium text-muted-foreground">
+                      URL da playlist ou vídeo
+                    </label>
+                    <input
+                      type="url"
+                      value={ytUrl}
+                      onChange={(e) => setYtUrl(e.target.value)}
+                      placeholder="https://youtube.com/playlist?list=..."
+                      className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 font-sans text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                      onKeyDown={(e) => { if (e.key === "Enter") handleYoutubeDownload(); }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleYoutubeDownload}
+                    disabled={!ytUrl.trim() || ytDownloading}
+                    className={cn(
+                      "flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-primary-foreground transition-opacity",
+                      (!ytUrl.trim() || ytDownloading) ? "opacity-50 cursor-not-allowed" : "hover:opacity-90",
+                    )}
+                  >
+                    {ytDownloading ? (
+                      <>
+                        <Lottie animationData={loadingAnimation} loop className="size-5" />
+                        Baixando...
+                      </>
+                    ) : (
+                      <>
+                        <UploadSimple className="size-4" weight="bold" />
+                        Baixar e Importar
+                      </>
+                    )}
+                  </button>
+                  <p className="font-sans text-xs text-muted-foreground/50">
+                    Requer yt-dlp instalado no sistema
+                  </p>
+                </div>
+              </div>
+              {parseError && (
+                <div className="mt-4 flex items-center gap-2 rounded-lg bg-destructive/10 px-4 py-3">
+                  <Warning className="size-4 shrink-0 text-destructive" weight="bold" />
+                  <p className="font-sans text-sm text-destructive">{parseError}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       ) : parsedCourse ? (
         <ConfigureStep
           course={parsedCourse}

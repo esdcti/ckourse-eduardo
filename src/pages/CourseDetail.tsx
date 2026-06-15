@@ -556,7 +556,14 @@ function CourseDetailInner({
     });
   }, [pendingTimestampNav, activeLesson, allLessons, course.id, onDataChange]);
 
-  const handleOpenResource = async (path: string) => {
+  const [viewingPdf, setViewingPdf] = useState<string | null>(null);
+
+  const handleOpenResource = async (path: string, type?: string) => {
+    if (type === "pdf") {
+      const { convertFileSrc } = await import("@tauri-apps/api/core");
+      setViewingPdf(convertFileSrc(path, "stream"));
+      return;
+    }
     try {
       await openPath(path);
     } catch (err) {
@@ -793,7 +800,7 @@ function CourseDetailInner({
                   return (
                     <button
                       key={resource.id}
-                      onClick={() => handleOpenResource(resource.path)}
+                      onClick={() => handleOpenResource(resource.path, resource.type)}
                       className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-left transition-all duration-150 hover:scale-[1.02] hover:bg-secondary active:scale-[0.98]"
                       style={{ transitionTimingFunction: SNAPPY }}
                     >
@@ -864,6 +871,25 @@ function CourseDetailInner({
         show={showCelebration}
         onDone={() => setShowCelebration(false)}
       />
+
+      {viewingPdf && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-sm">
+          <div className="flex items-center justify-between border-b border-border px-6 py-3">
+            <h3 className="font-heading text-sm font-bold text-foreground">PDF</h3>
+            <button
+              onClick={() => setViewingPdf(null)}
+              className="rounded-lg border border-border px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              {t.cancel}
+            </button>
+          </div>
+          <iframe
+            src={viewingPdf}
+            className="flex-1 w-full"
+            title="PDF Viewer"
+          />
+        </div>
+      )}
 
       {pendingTimestampNav && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm">

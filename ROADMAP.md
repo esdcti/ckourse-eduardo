@@ -30,7 +30,7 @@ Features que envolvem mais lógica mas resolvem dores reais de quem estuda TI.
 | # | Feature | Por quê? | Status |
 |---|---------|----------|--------|
 | 11 | **Banco de dados portátil (completo)** | Exportar/importar o banco junto com os cursos — migrar entre PCs sem perder progresso | ✅ v1.5.0 |
-| 12 | **Visualizador de PDF integrado** | Ler slides, cheatsheets e documentação sem sair do app | 🔜 (próxima versão) |
+| 12 | **Visualizador de PDF integrado** | Ler slides, cheatsheets e documentação sem sair do app | ✅ v1.5.0 |
 | 13 | **Tags customizadas** | Organizar por tech: "React", "Docker", "SQL", "AWS" — mais útil que categorias genéricas | ✅ v1.5.0 |
 | 14 | **Modo foco** | Oculta sidebar, mostra só vídeo + notas. Ideal pra monitor pequeno | ✅ v1.5.0 |
 | 15 | **Importar playlist do YouTube** | Integração com yt-dlp para baixar playlist e importar como curso automaticamente | ✅ v1.5.0 (backend) |

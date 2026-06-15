@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { SquircleButton } from "@/components/ui/SquircleButton";
 import { EASE_OUT, SNAPPY } from "@/lib/constants";
 import type { CourseCategory, Course } from "@/types";
-import { getCustomCategories, addCustomCategory, deleteCustomCategory } from "@/lib/store";
+import { getCustomCategories, addCustomCategory, deleteCustomCategory, getCourseTags, setCourseTags } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 
 const builtinCategories: { value: CourseCategory; label: string }[] = [
@@ -62,10 +62,13 @@ export function CourseEditPanel({
   const [category, setCategory] = useState<string>(course.category);
   const [accentColor, setAccentColor] = useState(course.accentColor);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
 
   useEffect(() => {
     getCustomCategories().then(setCustomCategories).catch(() => {});
-  }, []);
+    getCourseTags(course.id).then(setTags).catch(() => {});
+  }, [course.id]);
   const [saving, setSaving] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -86,6 +89,7 @@ export function CourseEditPanel({
     setSaving(true);
     try {
       await onSave(title.trim(), author.trim(), accentColor, category);
+      await setCourseTags(course.id, tags);
       onBack();
     } finally {
       setSaving(false);
@@ -196,6 +200,45 @@ export function CourseEditPanel({
             customCategories={customCategories}
             onCustomCategoriesChange={setCustomCategories}
           />
+
+          <div className="flex flex-col gap-2">
+            <label className="font-sans text-xs font-medium text-muted-foreground">
+              Tags
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 font-sans text-xs font-medium text-primary"
+                >
+                  {tag}
+                  <button
+                    onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                    className="ml-0.5 rounded-full p-0.5 text-primary/60 hover:text-primary"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && tagInput.trim()) {
+                    e.preventDefault();
+                    const newTag = tagInput.trim();
+                    if (!tags.includes(newTag)) {
+                      setTags((prev) => [...prev, newTag]);
+                    }
+                    setTagInput("");
+                  }
+                }}
+                placeholder="Ex: React, Docker..."
+                className="min-w-24 flex-1 rounded-full border border-dashed border-border/50 bg-transparent px-3 py-1 font-sans text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/25 focus:outline-none"
+              />
+            </div>
+          </div>
 
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground">
