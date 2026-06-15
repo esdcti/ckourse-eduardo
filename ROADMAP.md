@@ -45,7 +45,7 @@ Plano de evolução focado em uso para **cursos de TI** (programação, DevOps, 
 | 12 | 📄 Visualizador de PDF | Abre PDFs inline em fullscreen (iframe + asset protocol) |
 | 13 | 🏷️ Tags customizadas | Sistema many-to-many — input de tags no painel de edição do curso |
 | 14 | 🎯 Modo foco | Esconde header + sidebar do currículo, maximiza o vídeo |
-| 15 | 🎬 Importar YouTube | Tab "YouTube" na importação — URL → yt-dlp → pasta → parser → curso importado |
+| 15 | 🎬 Importar YouTube | Tab "YouTube" na importação — URL → yt-dlp → progresso visual em tempo real → parser → curso importado |
 
 ---
 

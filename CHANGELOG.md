@@ -6,6 +6,26 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ---
 
+## [1.5.3] - 2026-06-15
+
+### Corrigido
+- **yt-dlp**: captura stderr em thread separada para evitar deadlock e mostrar erro real ao usuário
+- **yt-dlp**: formato de vídeo com fallback mais robusto (`bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b`)
+- **yt-dlp**: adicionado `--no-colors` para output limpo no parsing
+- Mensagem de erro agora mostra a última linha do stderr do yt-dlp (ex: problema de rede, URL inválida, falta de ffmpeg)
+
+---
+
+## [1.5.2] - 2026-06-15
+
+### Adicionado
+- **Indicador visual de progresso do download YouTube**: card animado com barra de progresso, título do vídeo sendo baixado e contagem X/Y
+- Backend: yt-dlp roda com `spawn()` + streaming de stdout (não bloqueia a UI)
+- Backend: emite eventos Tauri `ytdlp-progress` em tempo real
+- Frontend: escuta eventos via `listen("ytdlp-progress")` e atualiza UI com animação
+
+---
+
 ## [1.5.1] - 2026-06-15
 
 ### Adicionado

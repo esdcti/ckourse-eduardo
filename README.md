@@ -20,7 +20,7 @@ Seu media player não sabe o que "Seção 4 - Aula 12" significa. Seu gerenciado
 
 ### ✅ v1.5 — Atual
 - 📁 **Importação inteligente de pastas** — aponte o Ckourse para qualquer pasta de curso e ele analisa a estrutura automaticamente
-- 🎬 **Importação do YouTube** — cole a URL de uma playlist e importe como curso (requer yt-dlp)
+- 🎬 **Importação do YouTube** — cole a URL de uma playlist, acompanhe o progresso em tempo real (vídeo X/Y + barra animada) e importe como curso (requer yt-dlp + ffmpeg)
 - ▶️ **Player de vídeo integrado** — player HTML5 com legendas, autoplay, PiP e navegação por timestamp
 - ⌨️ **Atalhos de teclado completos** — Space, N/P (próxima/anterior), F (fullscreen), M (mute), J/L (skip), C (legendas)
 - 📊 **Rastreamento de progresso** — conclusão por aula, barra de progresso, retome de onde parou
