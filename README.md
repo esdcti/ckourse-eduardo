@@ -18,28 +18,37 @@ Seu media player não sabe o que "Seção 4 - Aula 12" significa. Seu gerenciado
 
 ## Funcionalidades
 
-### ✅ v1.2 — Atual
-- 📁 **Importação inteligente de pastas** — aponte o Ckourse para qualquer pasta de curso e ele analisa a estrutura automaticamente, detectando seções, aulas, legendas e anexos
-- ▶️ **Player de vídeo integrado** — player HTML5 nativo com suporte a legendas, autoplay e navegação por timestamp
-- 📊 **Rastreamento de progresso** — conclusão por aula, barra de progresso por curso, retome exatamente de onde parou
-- 📝 **Notas com timestamp** — adicione notas vinculadas a timestamps específicos e navegue de volta instantaneamente, mesmo entre aulas
-- 🔖 **Bookmarks** — marque aulas para acesso rápido em uma página dedicada
-- 🗂️ **Biblioteca de cursos** — um dashboard limpo com todos os cursos importados e progresso visível
-- 🎉 **Celebração de conclusão** — animação de partículas em canvas quando você termina um curso
+### ✅ v1.5 — Atual
+- 📁 **Importação inteligente de pastas** — aponte o Ckourse para qualquer pasta de curso e ele analisa a estrutura automaticamente
+- 🎬 **Importação do YouTube** — cole a URL de uma playlist e importe como curso (requer yt-dlp)
+- ▶️ **Player de vídeo integrado** — player HTML5 com legendas, autoplay, PiP e navegação por timestamp
+- ⌨️ **Atalhos de teclado completos** — Space, N/P (próxima/anterior), F (fullscreen), M (mute), J/L (skip), C (legendas)
+- 📊 **Rastreamento de progresso** — conclusão por aula, barra de progresso, retome de onde parou
+- ⏱️ **Tempo restante** — cada card mostra quanto falta para terminar o curso
+- 📝 **Notas com timestamp** — adicione notas vinculadas a timestamps específicos, exportáveis como Markdown
+- 📋 **Copiar notas** — botão de copy para levar snippets pro clipboard
+- 📄 **Visualizador de PDF** — abra PDFs inline sem sair do app
+- 🔖 **Bookmarks e Favoritos** — marque cursos e aulas para acesso rápido
+- 🏷️ **Tags customizadas** — organize por tech: React, Docker, SQL, AWS...
+- 🎚️ **Velocidade por curso** — cada curso salva sua velocidade preferida
+- 🎯 **Modo foco** — esconde sidebar e header, maximiza o vídeo
+- 🗂️ **Filtro por status na sidebar** — acesso rápido a cursos em progresso, concluídos ou não iniciados
+- 💾 **Export/Import banco** — migre progresso entre PCs com um clique
 - 🌙 **Temas** — claro, escuro e sincronizado com o sistema
-- 🌐 **Interface em Português (BR)** — sistema de i18n com suporte a pt-BR e inglês, selecionável nas configurações
-- 💾 **Modo Portátil** — rode do pen drive/cartão de memória com dados salvos junto ao app (basta criar um arquivo `.portable` ao lado do executável)
-- 📂 **Local customizado para o banco** — nas Configurações, escolha onde salvar o banco de dados (pen drive, Google Drive, OneDrive, etc.)
-- 🔄 **Auto-updater** — receba atualizações automaticamente sem precisar baixar manualmente
+- 🌐 **Interface em Português (BR)** — sistema de i18n completo (pt-BR + English)
+- 💾 **Modo Portátil** — rode do pen drive com dados salvos junto ao app
+- 📂 **Local customizado para o banco** — salve em pasta na nuvem (Drive, OneDrive)
+- 🔄 **Auto-updater** — receba atualizações automaticamente
 - 🔍 **Busca global** — busque em cursos e aulas pelo nome
-- ☁️ **Compatível com Google Drive / OneDrive** — importe cursos de pastas sincronizadas e salve progresso na nuvem
+- 🎉 **Celebração de conclusão** — animação ao terminar um curso
+- 📈 **Dashboard com stats** — streaks, heatmap de atividade, níveis de progressão
 
-### 🚧 Próxima versão
-- ⌨️ **Atalhos de teclado** — controle total pelo teclado
-- 🏷️ **Tags customizadas** — organize por tecnologia (React, Docker, AWS...)
-- 📄 **Visualizador de PDF** — leia anexos sem sair do app
+### 🚧 Próximas versões
 - 🎯 **Meta diária de estudo** — streak e consistência
 - 📌 **Marcadores no vídeo** — bookmarks de timestamp para revisão rápida
+- 🔍 **Busca dentro das notas** — full-text search
+- 🃏 **Playlists de revisão** — juntar aulas de cursos diferentes
+- 🤖 **Transcrição com Whisper** — legendas automáticas via IA local
 
 ---
 
@@ -151,8 +160,11 @@ ckourse/
 │   │   ├── lib.rs            # Setup do app Tauri
 │   │   ├── db.rs             # Schema SQLite e queries
 │   │   ├── parser.rs         # Parser de pasta de cursos
+│   │   ├── portable.rs       # Lógica de modo portátil
 │   │   ├── subtitle.rs       # Manipulação de legendas
-│   │   └── commands/         # courses.rs, lessons.rs, notes.rs, settings.rs
+│   │   ├── video_protocol.rs # Streaming de vídeo local
+│   │   └── commands/         # courses.rs, lessons.rs, notes.rs,
+│   │                         #   settings.rs, portable.rs, youtube.rs
 │   └── tauri.conf.json       # Configuração do Tauri
 └── public/                   # Assets estáticos
 ```

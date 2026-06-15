@@ -6,6 +6,63 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ---
 
+## [1.5.1] - 2026-06-15
+
+### Adicionado
+- **Importação do YouTube**: tab "YouTube" na página de importação com campo de URL, validação de yt-dlp, seleção de pasta destino e download automático
+- **Visualizador de PDF inline**: clique em recurso PDF abre viewer fullscreen dentro do app (sem abrir externamente)
+- **Tags customizadas UI**: input de tags no painel de edição de curso com add/remove e persistência
+
+---
+
+## [1.5.0] - 2026-06-15
+
+### Adicionado
+- **Export/Import banco de dados**: botões "Exportar banco" e "Importar banco" nas Configurações. Cria backup automático ao importar.
+- **Sistema de tags**: tabela `course_tags` (many-to-many) com comandos `get_course_tags`, `set_course_tags`, `get_all_tags`
+- **Modo foco**: botão 👁 no header do CourseDetail — esconde header e sidebar do currículo com animação
+- **Backend YouTube (yt-dlp)**: comandos `check_ytdlp` e `download_youtube_playlist` — baixa playlist como MP4 + legendas VTT
+- Migration automática para tabela `course_tags` com índices
+
+---
+
+## [1.4.0] - 2026-06-15
+
+### Adicionado
+- **Atalhos N/P**: tecla N para próxima aula, Shift+P para aula anterior no player
+- **Exportar notas como Markdown**: botão "Markdown" na página Notas — converte HTML para Markdown com timestamps preservados
+- **Indicador de tempo restante**: cards do dashboard mostram "~2h30" restantes por curso
+- **Filtro por status na sidebar**: links rápidos "Em Progresso", "Não Iniciado", "Concluído"
+- **Tooltip de progresso**: hover no card mostra "15/20 aulas • ~2h restantes"
+- **Copiar nota**: botão de copy no hover de cada nota (copia texto limpo pro clipboard)
+- **Velocidade salva por curso**: persiste no SQLite via settings (`speed_course_{id}`), restaurada ao reabrir
+
+### Alterado
+- Struct `Course` agora inclui `total_duration` (soma das durações de todas as aulas)
+- Query `get_all_courses` e `get_bookmarked_courses` retornam duração total
+- VideoPlayer aceita prop `onPrevious` e `onSpeedChange`
+
+---
+
+## [1.3.2] - 2026-06-15
+
+### Adicionado
+- Tradução completa de strings restantes: NoteEditor, VideoPlayer tooltips, SidebarSearch, AppShell
+- Chaves i18n: `noResultsFor`, `currentTime`, `goToTime`, `bold`, `italic`, `underline`, `strikethrough`, `typeAtToTag`, `writeANote`, tooltips do player, `navigation`, `app`, `anotherLesson`
+
+---
+
+## [1.3.0] - 2026-06-15
+
+### Adicionado
+- **Cobertura completa de i18n para pt-BR**: ~80 novas chaves de tradução
+- Traduzidos: Settings, CourseDetail, ImportCourse, Progress, Notes, Bookmarks
+- Traduzidos: CourseEditPanel, VideoPlayer, UpdateBanner, DashboardStats, CourseCard
+- Traduzidos: CourseCelebration, NotesPanel, SectionAccordion
+- Toasts de erro, badges de status, labels de nível e datas agora usam i18n
+
+---
+
 ## [1.2.1] - 2026-06-09
 
 ### Corrigido
@@ -16,63 +73,33 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 ## [1.2.0] - 2026-06-09
 
 ### Adicionado
-- **Escolher local do banco de dados**: botão nas Configurações → Biblioteca para selecionar uma pasta customizada (pen drive, cartão SD, pasta na nuvem)
+- **Escolher local do banco de dados**: botão nas Configurações → Biblioteca para selecionar uma pasta customizada
 - **Restaurar padrão**: botão para voltar o banco ao local padrão (AppData)
-- Mensagem de feedback ao alterar local do banco (pede reinício do app)
 
 ### Melhorado
-- Módulo portátil agora suporta 3 modos: padrão, `.portable`, e pasta customizada
-- Lógica de resolução de data_dir com prioridade: portátil > customizado > padrão
+- Módulo portátil suporta 3 modos: padrão, `.portable`, e pasta customizada
 
 ---
 
 ## [1.1.0] - 2026-06-09
 
 ### Adicionado
-- **Modo Portátil**: coloque um arquivo `.portable` ao lado do executável e o banco de dados será salvo na mesma pasta — perfeito para rodar de um pen drive/cartão de memória
-- **i18n (Internacionalização)**: sistema de tradução completo com suporte a Português (BR) e Inglês
-- **Seletor de idioma**: nas Configurações, escolha entre pt-BR e English
-- **Interface em Português**: Dashboard, sidebar, configurações e filtros traduzidos
-- **CI/CD automático**: cada push na main com bump de versão gera release automaticamente
-- **AGENTS.md**: diretrizes para agentes de IA contribuírem no projeto
-- **ROADMAP.md**: plano de evolução organizado por complexidade
-- **CHANGELOG.md**: histórico de mudanças do projeto
-
-### Alterado
-- Endpoint do auto-updater agora aponta para o fork (esdcti/ckourse-eduardo)
-- Chave de assinatura própria para releases
-- README.md traduzido para português com link para versão em inglês
-- Idioma padrão da interface alterado para pt-BR
+- **Modo Portátil**: arquivo `.portable` ao lado do executável ativa modo portátil
+- **i18n**: sistema de tradução com suporte a pt-BR e English
+- **Seletor de idioma** nas Configurações
+- **CI/CD automático**: cada push na main gera release
+- AGENTS.md, ROADMAP.md, CHANGELOG.md
 
 ---
 
 ## [1.0.5] - 2026-06-09
 
 ### Adicionado
-- Primeiro build próprio do fork
-- Workflow de CI para gerar instalador Windows automaticamente
-- Atribuição ao autor original no README
-
-### Alterado
-- Endpoint do updater migrado de `redaantar/ckourse` para `esdcti/ckourse-eduardo`
-- Chave pública do updater atualizada
+- Primeiro build do fork com CI próprio
+- Atribuição ao autor original
 
 ---
 
 ## [1.0.4] - Base original
 
 Release original do projeto [Ckourse](https://github.com/redaantar/ckourse) por Reda Antar.
-
-### Funcionalidades herdadas
-- Importação inteligente de pastas de cursos
-- Player de vídeo integrado com suporte a legendas (SRT/VTT/ASS)
-- Rastreamento de progresso por aula e por curso
-- Notas com timestamp vinculadas a aulas
-- Bookmarks de cursos e favoritos de aulas
-- Biblioteca de cursos com dashboard de estatísticas
-- Celebração de conclusão de curso
-- Temas: claro, escuro e sincronizado com o sistema
-- Busca global em cursos e aulas
-- Categorias customizadas
-- Auto-updater integrado
-- Keep-alive routing (preserva estado das páginas)
