@@ -47,6 +47,8 @@ import {
   deleteCourse,
   toggleBookmark,
   toggleFavorite,
+  getCourseSpeed,
+  setCourseSpeed,
   addNote as storeAddNote,
   updateNote as storeUpdateNote,
   deleteNote as storeDeleteNote,
@@ -221,6 +223,16 @@ function CourseDetailInner({
   const { setTitle: setBreadcrumbTitle } = useCourseTitles();
   const t = useI18n();
   const allLessons = courseData.sections.flatMap((s) => s.lessons);
+  const [courseSpeed, setCourseSpeedState] = useState<number | null>(null);
+
+  useEffect(() => {
+    getCourseSpeed(course.id).then(setCourseSpeedState);
+  }, [course.id]);
+
+  const handleSpeedChange = useCallback((speed: number) => {
+    setCourseSpeedState(speed);
+    setCourseSpeed(course.id, speed);
+  }, [course.id]);
 
   useEffect(() => {
     setBreadcrumbTitle(course.id, course.title);
@@ -370,6 +382,23 @@ function CourseDetailInner({
       videoTimeRef.current = 0;
       setAutoPlay(true);
       await setLastWatched(course.id, next.id);
+      await onDataChange();
+    }
+  }, [activeLesson, allLessons, course.id, onDataChange]);
+
+  const handlePreviousLesson = useCallback(async () => {
+    if (!activeLesson) return;
+    const idx = allLessons.findIndex((l) => l.id === activeLesson.id);
+    if (idx > 0) {
+      const prev = allLessons[idx - 1];
+      if (videoTimeRef.current > 0) {
+        saveLessonPosition(activeLesson.id, videoTimeRef.current);
+      }
+      setActiveLessonId(prev.id);
+      setVideoTime(0);
+      videoTimeRef.current = 0;
+      setAutoPlay(true);
+      await setLastWatched(course.id, prev.id);
       await onDataChange();
     }
   }, [activeLesson, allLessons, course.id, onDataChange]);
@@ -624,7 +653,7 @@ function CourseDetailInner({
             autoPlay={autoPlay}
             autoSkipEnabled={settings.autoplay_next}
             initialTime={settingsLoaded ? (settings.resume_position ? activeLesson?.lastPosition : 0) : null}
-            defaultSpeed={settings.default_speed}
+            defaultSpeed={courseSpeed ?? settings.default_speed}
             defaultVolume={settings.default_volume}
             skipSeconds={settings.skip_forward_secs}
             onTimeUpdate={handleTimeUpdate}
@@ -632,6 +661,8 @@ function CourseDetailInner({
             onPlayStateChange={handlePlayStateChange}
             onEnded={handleVideoEnded}
             onNext={handleNextLesson}
+            onPrevious={handlePreviousLesson}
+            onSpeedChange={handleSpeedChange}
           />
 
           {activeLesson && (

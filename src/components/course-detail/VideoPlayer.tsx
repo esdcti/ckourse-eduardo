@@ -48,6 +48,8 @@ interface VideoPlayerProps {
   onPlayStateChange?: (playing: boolean) => void;
   onEnded?: () => void;
   onNext?: () => void;
+  onPrevious?: () => void;
+  onSpeedChange?: (speed: number) => void;
 }
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -123,6 +125,8 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   onPlayStateChange,
   onEnded,
   onNext,
+  onPrevious,
+  onSpeedChange,
 }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -407,6 +411,16 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
           e.preventDefault();
           togglePiP();
           break;
+        case "n":
+          if (hasNext) {
+            e.preventDefault();
+            onNext?.();
+          }
+          break;
+        case "P":
+          e.preventDefault();
+          onPrevious?.();
+          break;
         case ",":
           if (e.shiftKey) {
             e.preventDefault();
@@ -466,7 +480,8 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     setPlaybackSpeed(speed);
     playbackSpeedRef.current = speed;
     setShowSpeedMenu(false);
-  }, []);
+    onSpeedChange?.(speed);
+  }, [onSpeedChange]);
 
   const cycleSubtitles = useCallback(() => {
     if (subtitles.length === 0) return;

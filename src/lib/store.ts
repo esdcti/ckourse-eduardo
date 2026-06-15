@@ -188,3 +188,53 @@ export async function getPortableInfo(): Promise<PortableInfo> {
 export async function setCustomDataDir(path: string): Promise<string> {
   return invoke<string>("set_custom_data_dir", { path });
 }
+
+export async function getCourseSpeed(courseId: number): Promise<number | null> {
+  const pairs = await getAllSettings();
+  const val = pairs[`speed_course_${courseId}`];
+  return val ? Number(val) : null;
+}
+
+export async function setCourseSpeed(courseId: number, speed: number): Promise<void> {
+  return setSetting(`speed_course_${courseId}`, String(speed));
+}
+
+export function exportNotesAsMarkdown(notes: { lessonTitle: string; content: string; courseTitle: string; updatedAt: string }[]): string {
+  const lines: string[] = ["# Notas\n"];
+  let currentCourse = "";
+
+  for (const note of notes) {
+    if (note.courseTitle !== currentCourse) {
+      currentCourse = note.courseTitle;
+      lines.push(`\n## ${currentCourse}\n`);
+    }
+
+    lines.push(`### ${note.lessonTitle}\n`);
+
+    // Convert HTML to markdown-ish plain text
+    let text = note.content;
+    text = text.replace(/<b>(.*?)<\/b>/gi, "**$1**");
+    text = text.replace(/<strong>(.*?)<\/strong>/gi, "**$1**");
+    text = text.replace(/<i>(.*?)<\/i>/gi, "*$1*");
+    text = text.replace(/<em>(.*?)<\/em>/gi, "*$1*");
+    text = text.replace(/<u>(.*?)<\/u>/gi, "$1");
+    text = text.replace(/<s>(.*?)<\/s>/gi, "~~$1~~");
+    text = text.replace(/<strike>(.*?)<\/strike>/gi, "~~$1~~");
+    text = text.replace(/<del>(.*?)<\/del>/gi, "~~$1~~");
+    // Convert timestamps to [MM:SS] format
+    text = text.replace(/<span[^>]*class="note-timestamp"[^>]*data-timestamp="(\d+)"[^>]*>([^<]*)<\/span>/gi, "[$2]");
+    // Strip remaining HTML
+    text = text.replace(/<br\s*\/?>/gi, "\n");
+    text = text.replace(/<\/p>/gi, "\n");
+    text = text.replace(/<[^>]+>/g, "");
+    text = text.replace(/&nbsp;/g, " ");
+    text = text.replace(/&amp;/g, "&");
+    text = text.replace(/&lt;/g, "<");
+    text = text.replace(/&gt;/g, ">");
+
+    lines.push(text.trim());
+    lines.push(`\n> _${new Date(note.updatedAt).toLocaleDateString()}_\n`);
+  }
+
+  return lines.join("\n");
+}

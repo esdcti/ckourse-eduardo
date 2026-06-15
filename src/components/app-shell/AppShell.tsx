@@ -199,6 +199,30 @@ function AppShellInner({ children }: AppShellProps) {
 
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pt-4">
             <NavSection label={t.navigation} collapsed={effectiveCollapsed} items={navigationItems} />
+
+            {!effectiveCollapsed && (
+              <div className="mx-1 mt-2 mb-1 flex flex-col gap-0.5">
+                <Link
+                  to="/?status=in-progress"
+                  className="rounded-md px-3 py-1.5 font-sans text-[11px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                >
+                  ● {t.inProgress}
+                </Link>
+                <Link
+                  to="/?status=not-started"
+                  className="rounded-md px-3 py-1.5 font-sans text-[11px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                >
+                  ○ {t.notStarted}
+                </Link>
+                <Link
+                  to="/?status=completed"
+                  className="rounded-md px-3 py-1.5 font-sans text-[11px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                >
+                  ✓ {t.completed}
+                </Link>
+              </div>
+            )}
+
             <div className="mx-3 my-3 border-t border-sidebar-border/50" />
             <NavSection label={t.app} collapsed={effectiveCollapsed} items={appItems} />
           </nav>

@@ -21,6 +21,7 @@ pub struct Course {
     pub author: String,
     pub completed_lessons: i64,
     pub total_lessons: i64,
+    pub total_duration: i64,
     pub status: String,
     pub accent_color: String,
     pub last_watched: Option<String>,
@@ -380,7 +381,8 @@ pub fn get_all_courses(conn: &Connection) -> SqlResult<Vec<Course>> {
                 c.description, c.thumbnail_path, c.last_watched,
                 (SELECT COUNT(*) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id) as total,
                 (SELECT COUNT(*) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id AND l.completed = 1) as completed,
-                (SELECT COUNT(*) > 0 FROM bookmarks b WHERE b.course_id = c.id) as bookmarked
+                (SELECT COUNT(*) > 0 FROM bookmarks b WHERE b.course_id = c.id) as bookmarked,
+                (SELECT COALESCE(SUM(l.duration), 0) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id) as total_duration
          FROM courses c
          ORDER BY c.updated_at DESC",
     )?;
@@ -411,6 +413,7 @@ pub fn get_all_courses(conn: &Connection) -> SqlResult<Vec<Course>> {
                 completed_lessons: completed,
                 status: status.to_string(),
                 bookmarked: row.get::<_, i32>(11)? != 0,
+                total_duration: row.get(12)?,
             })
         })?
         .collect::<SqlResult<Vec<_>>>()?;
@@ -508,7 +511,8 @@ pub fn get_course_by_id(conn: &Connection, course_id: i64) -> SqlResult<Option<C
                 c.description, c.thumbnail_path, c.last_watched,
                 (SELECT COUNT(*) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id) as total,
                 (SELECT COUNT(*) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id AND l.completed = 1) as completed,
-                (SELECT COUNT(*) > 0 FROM bookmarks b WHERE b.course_id = c.id) as bookmarked
+                (SELECT COUNT(*) > 0 FROM bookmarks b WHERE b.course_id = c.id) as bookmarked,
+                (SELECT COALESCE(SUM(l.duration), 0) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id) as total_duration
          FROM courses c WHERE c.id = ?1",
     )?;
 
@@ -536,6 +540,7 @@ pub fn get_course_by_id(conn: &Connection, course_id: i64) -> SqlResult<Option<C
             completed_lessons: completed,
             status: status.to_string(),
             bookmarked: row.get::<_, i32>(11)? != 0,
+            total_duration: row.get(12)?,
         })
     }) {
         Ok(c) => Ok(Some(c)),
@@ -814,7 +819,8 @@ pub fn get_bookmarked_courses(conn: &Connection) -> SqlResult<Vec<Course>> {
         "SELECT c.id, c.title, c.author, c.accent_color, c.category, c.folder_path,
                 c.description, c.thumbnail_path, c.last_watched,
                 (SELECT COUNT(*) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id) as total,
-                (SELECT COUNT(*) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id AND l.completed = 1) as completed
+                (SELECT COUNT(*) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id AND l.completed = 1) as completed,
+                (SELECT COALESCE(SUM(l.duration), 0) FROM lessons l JOIN sections s ON l.section_id = s.id WHERE s.course_id = c.id) as total_duration
          FROM courses c
          JOIN bookmarks b ON b.course_id = c.id
          ORDER BY b.created_at DESC",
@@ -846,6 +852,7 @@ pub fn get_bookmarked_courses(conn: &Connection) -> SqlResult<Vec<Course>> {
                 completed_lessons: completed,
                 status: status.to_string(),
                 bookmarked: true,
+                total_duration: row.get(11)?,
             })
         })?
         .collect::<SqlResult<Vec<_>>>()?;

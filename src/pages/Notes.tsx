@@ -12,11 +12,12 @@ import {
   CaretRightIcon as CaretRight,
   SortAscendingIcon as SortAscending,
   SortDescendingIcon as SortDescending,
+  ExportIcon as Export,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { SquircleSearch } from "@/components/ui/SquircleSearch";
 import type { NoteWithCourse } from "@/types";
-import { getAllNotes, updateNote, deleteNote } from "@/lib/store";
+import { getAllNotes, updateNote, deleteNote, exportNotesAsMarkdown } from "@/lib/store";
 import { NoteEditor } from "@/components/course-detail/NoteEditor";
 import { EASE_OUT, SNAPPY } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
@@ -180,6 +181,22 @@ export function Notes({ className }: NotesProps) {
               {notes.length} {notes.length === 1 ? t.noteAcrossCourse : t.notesAcrossCourses} {courses.length} {courses.length === 1 ? t.course : t.courses.toLowerCase()}
             </p>
           </div>
+          <button
+            onClick={() => {
+              const md = exportNotesAsMarkdown(notes);
+              const blob = new Blob([md], { type: "text/markdown" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "ckourse-notes.md";
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <Export className="size-3.5" />
+            Markdown
+          </button>
         </div>
       </div>
 

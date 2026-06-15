@@ -7,6 +7,7 @@ export interface Course {
   author: string;
   completedLessons: number;
   totalLessons: number;
+  totalDuration: number;
   status: "in-progress" | "completed" | "not-started";
   accentColor: string;
   lastWatched: string | null;

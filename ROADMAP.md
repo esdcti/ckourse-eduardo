@@ -8,18 +8,18 @@ Plano de evolução focado em uso para **cursos de TI** (programação, DevOps, 
 
 Melhorias rápidas com impacto direto na experiência diária de estudo.
 
-| # | Feature | Por quê? |
-|---|---------|----------|
-| 1 | **Atalhos de teclado** | Estudar sem tirar a mão do teclado: espaço (play/pause), N (próxima), P (anterior), F (fullscreen), M (mute), ←→ (skip 10s) |
-| 2 | **Exportar notas como Markdown** | Levar suas anotações pro Obsidian, Notion ou qualquer editor. Inclui timestamps como links |
-| 3 | **Indicador de tempo restante** | No dashboard, mostrar "~2h30 restantes" por curso — ajuda a planejar sessões de estudo |
-| 4 | **Filtro por status na sidebar** | Ver só cursos "Em Progresso" rapidamente sem abrir filtros |
-| 5 | **Marcar aula sem assistir** | Você já sabe HTML básico? Pula as aulas introdutórias marcando como concluída |
-| 6 | **Tema por curso** | Cor de destaque personalizada para identificar visualmente cada curso no dashboard |
-| 7 | **Tooltip de progresso** | Hover no card mostra "42 de 120 aulas • ~18h restantes" |
-| 8 | **Copiar trecho da nota** | Botão para copiar snippet de código da nota direto pro clipboard |
-| 9 | **Velocidade salva por curso** | Assistir Python a 1.5x e AWS a 1x sem ficar ajustando toda vez |
-| 10 | **Modo Picture-in-Picture** | Assistir aula em janela flutuante enquanto pratica código no VS Code |
+| # | Feature | Por quê? | Status |
+|---|---------|----------|--------|
+| 1 | **Atalhos de teclado** | Estudar sem tirar a mão do teclado: espaço (play/pause), N (próxima), P (anterior), F (fullscreen), M (mute), ←→ (skip 10s) | ✅ v1.4.0 |
+| 2 | **Exportar notas como Markdown** | Levar suas anotações pro Obsidian, Notion ou qualquer editor. Inclui timestamps como links | ✅ v1.4.0 |
+| 3 | **Indicador de tempo restante** | No dashboard, mostrar "~2h30 restantes" por curso — ajuda a planejar sessões de estudo | ✅ v1.4.0 |
+| 4 | **Filtro por status na sidebar** | Ver só cursos "Em Progresso" rapidamente sem abrir filtros | ✅ v1.4.0 |
+| 5 | **Marcar aula sem assistir** | Você já sabe HTML básico? Pula as aulas introdutórias marcando como concluída | ✅ (já existia) |
+| 6 | **Tema por curso** | Cor de destaque personalizada para identificar visualmente cada curso no dashboard | ✅ (já existia) |
+| 7 | **Tooltip de progresso** | Hover no card mostra "42 de 120 aulas • ~18h restantes" | ✅ v1.4.0 |
+| 8 | **Copiar trecho da nota** | Botão para copiar snippet de código da nota direto pro clipboard | ✅ v1.4.0 |
+| 9 | **Velocidade salva por curso** | Assistir Python a 1.5x e AWS a 1x sem ficar ajustando toda vez | ✅ v1.4.0 |
+| 10 | **Modo Picture-in-Picture** | Assistir aula em janela flutuante enquanto pratica código no VS Code | ✅ (já existia) |
 
 ---
 

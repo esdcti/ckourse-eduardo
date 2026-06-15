@@ -52,9 +52,23 @@ export function CourseCard({ course, onBookmarkChange }: { course: Course; onBoo
   const percentage = Math.round(
     (course.completedLessons / course.totalLessons) * 100
   );
+  const remainingLessons = course.totalLessons - course.completedLessons;
+  const remainingMins = course.totalLessons > 0
+    ? Math.round((course.totalDuration / course.totalLessons) * remainingLessons)
+    : 0;
+
+  function formatRemaining(mins: number): string {
+    if (mins <= 0) return "";
+    if (mins < 60) return `~${mins}min`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `~${h}h${m}min` : `~${h}h`;
+  }
+
+  const tooltipText = `${course.completedLessons}/${course.totalLessons} ${t.lessons.toLowerCase()} • ${formatRemaining(remainingMins)} ${remainingMins > 0 ? t.left : ""}`.trim();
 
   return (
-    <Link to={`/course/${course.id}?from=${encodeURIComponent(location.pathname + location.search)}`} className="block h-full">
+    <Link to={`/course/${course.id}?from=${encodeURIComponent(location.pathname + location.search)}`} className="block h-full" title={tooltipText}>
       <div className="squircle-subtle-wrapper group relative flex h-full flex-col transition-colors">
         <div className="squircle-subtle absolute inset-0 bg-border" />
         <div className="squircle-subtle absolute inset-px bg-card transition-colors group-hover:bg-secondary" />
@@ -96,7 +110,9 @@ export function CourseCard({ course, onBookmarkChange }: { course: Course; onBoo
               </p>
               <span className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
                 <Clock className="size-3" />
-                {formatLastWatched(course.lastWatched, t)}
+                {course.status === "completed" || remainingMins === 0
+                  ? formatLastWatched(course.lastWatched, t)
+                  : formatRemaining(remainingMins)}
               </span>
             </div>
 

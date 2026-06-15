@@ -2,6 +2,7 @@ import {
   NotePencilIcon as NotePencil,
   PencilSimpleIcon as PencilSimple,
   TrashIcon as Trash,
+  CopyIcon as Copy,
 } from "@phosphor-icons/react";
 import { NoteEditor } from "./NoteEditor";
 import { SNAPPY } from "@/lib/constants";
@@ -134,6 +135,16 @@ function NoteCard({
           }}
         />
         <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            onClick={() => {
+              const tmp = document.createElement("div");
+              tmp.innerHTML = note.content;
+              navigator.clipboard.writeText(tmp.textContent ?? "");
+            }}
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <Copy className="size-3" />
+          </button>
           <button
             onClick={onStartEdit}
             className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
