@@ -157,13 +157,19 @@ pub async fn download_youtube_playlist(
                 if line.contains("Destination:") {
                     if let Some(dest) = line.split("Destination:").nth(1) {
                         let filename = dest.trim();
+                        // Get just the filename (not full path)
+                        let filename = filename.rsplit_once(['/', '\\']).map(|(_, f)| f).unwrap_or(filename);
                         // Remove extension and leading numbers
                         let title = filename
                             .rsplit_once('.')
                             .map(|(name, _)| name)
                             .unwrap_or(filename)
-                            .trim_start_matches(|c: char| c.is_ascii_digit() || c == ' ' || c == '-');
-                        progress.video_title = Some(title.trim().to_string());
+                            .trim_start_matches(|c: char| c.is_ascii_digit() || c == ' ' || c == '-' || c == '_');
+                        // Convert underscores back to spaces for display
+                        let title = title.trim().replace('_', " ");
+                        if !title.is_empty() {
+                            progress.video_title = Some(title);
+                        }
                     }
                 }
 
