@@ -52,6 +52,16 @@ pub async fn download_youtube_playlist(
         .to_string_lossy()
         .to_string();
 
+    // Debug log file
+    let log_path = output_path.join("ckourse_ytdlp_debug.log");
+    let mut log_lines: Vec<String> = Vec::new();
+    log_lines.push(format!("=== Ckourse yt-dlp Debug Log ==="));
+    log_lines.push(format!("URL: {}", url));
+    log_lines.push(format!("Output dir: {}", output_dir));
+    log_lines.push(format!("Output template: {}", output_template));
+    log_lines.push(format!("Timestamp: {:?}", std::time::SystemTime::now()));
+    log_lines.push(format!(""));
+
     // Emit initial status
     let _ = app.emit("ytdlp-progress", YtDlpProgress {
         status: "downloading".to_string(),
@@ -62,22 +72,26 @@ pub async fn download_youtube_playlist(
         total_videos: None,
     });
 
+    let args = [
+        "--yes-playlist",
+        "-f", "b[ext=mp4]/b",
+        "--write-subs",
+        "--sub-langs", "all",
+        "--convert-subs", "vtt",
+        "--newline",
+        "--no-colors",
+        "--windows-filenames",
+        "--restrict-filenames",
+        "--no-warnings",
+        "--output", &output_template,
+        &url,
+    ];
+
+    log_lines.push(format!("Command: yt-dlp {}", args.join(" ")));
+    log_lines.push(format!(""));
+
     let mut child = Command::new("yt-dlp")
-        .args([
-            "--yes-playlist",
-            "-f", "b[ext=mp4]/b",
-            "--write-subs",
-            "--sub-langs", "all",
-            "--convert-subs", "vtt",
-            "--newline",
-            "--no-colors",
-            "--windows-filenames",
-            "--restrict-filenames",
-            "--no-warnings",
-            "--output",
-            &output_template,
-            &url,
-        ])
+        .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -103,6 +117,7 @@ pub async fn download_youtube_playlist(
         let app_clone = app.clone();
 
         for line in reader.lines().map_while(Result::ok) {
+            log_lines.push(format!("[stdout] {}", line));
             // yt-dlp outputs lines like:
             // [download]  45.2% of ~50.00MiB at 2.50MiB/s ETA 00:15
             // [download] Downloading video 3 of 12
@@ -171,13 +186,24 @@ pub async fn download_youtube_playlist(
         .and_then(|h| h.join().ok())
         .unwrap_or_default();
 
-    // Check if any video files were actually downloaded (yt-dlp returns exit 1 for warnings)
+    log_lines.push(format!(""));
+    log_lines.push(format!("Exit code: {:?}", status.code()));
+    for line in &stderr_lines {
+        log_lines.push(format!("[stderr] {}", line));
+    }
+
+    // Check if any video files were actually downloaded
     let has_videos = std::fs::read_dir(output_path)
         .map(|entries| entries.filter_map(|e| e.ok()).any(|e| {
             let name = e.file_name().to_string_lossy().to_lowercase();
             name.ends_with(".mp4") || name.ends_with(".mkv") || name.ends_with(".webm")
         }))
         .unwrap_or(false);
+
+    log_lines.push(format!("Has videos in folder: {}", has_videos));
+
+    // Write debug log
+    let _ = std::fs::write(&log_path, log_lines.join("\n"));
 
     if status.success() || has_videos {
         let _ = app.emit("ytdlp-progress", YtDlpProgress {
