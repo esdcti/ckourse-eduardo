@@ -17,6 +17,8 @@ import {
   useStartupUpdateCheck,
 } from "@/hooks/useUpdater";
 import { UpdateBanner } from "@/components/UpdateBanner";
+import { YoutubeDownloadBanner } from "@/components/YoutubeDownloadBanner";
+import { YoutubeDownloadContext, useYoutubeDownloadProvider } from "@/hooks/useYoutubeDownload";
 import { I18nContext, getTranslations, type Locale } from "@/lib/i18n";
 
 function routeKey(pathname: string, search: string): string {
@@ -103,6 +105,7 @@ function KeepAliveRoutes() {
 function App() {
   const settingsCtx = useSettingsProvider();
   const updaterCtx = useUpdaterProvider();
+  const ytCtx = useYoutubeDownloadProvider();
   useStartupUpdateCheck(updaterCtx);
 
   const t = getTranslations(settingsCtx.settings.locale as Locale);
@@ -111,10 +114,13 @@ function App() {
     <SettingsContext.Provider value={settingsCtx}>
       <I18nContext.Provider value={t}>
         <UpdaterContext.Provider value={updaterCtx}>
-          <AppShell>
-            <KeepAliveRoutes />
-          </AppShell>
-          <UpdateBanner />
+          <YoutubeDownloadContext.Provider value={ytCtx}>
+            <AppShell>
+              <KeepAliveRoutes />
+            </AppShell>
+            <UpdateBanner />
+            <YoutubeDownloadBanner />
+          </YoutubeDownloadContext.Provider>
         </UpdaterContext.Provider>
       </I18nContext.Provider>
     </SettingsContext.Provider>

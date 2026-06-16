@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { listen } from "@tauri-apps/api/event";
 import LottieLib from "lottie-react";
 
 // Handle CJS/ESM default export interop: in some Vite/Rollup build modes
@@ -43,7 +42,8 @@ import { cn } from "@/lib/utils";
 import { SquircleButton } from "@/components/ui/SquircleButton";
 import type { CourseCategory, ParsedCourse, ParsedSection, ParsedLesson } from "@/types";
 import { selectCourseFolder, parseCourseFolder } from "@/lib/courseParser";
-import { importCourse, getCustomCategories, addCustomCategory, deleteCustomCategory, checkYtdlp, downloadYoutubePlaylist } from "@/lib/store";
+import { importCourse, getCustomCategories, addCustomCategory, deleteCustomCategory } from "@/lib/store";
+import { useYoutubeDownload } from "@/hooks/useYoutubeDownload";
 import { EASE_OUT } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 
@@ -96,15 +96,7 @@ export function ImportCourse({ className }: ImportCourseProps) {
   const [structureIds, setStructureIds] = useState<StructureIds>({ sections: [], lessons: [] });
   const [isImporting, setIsImporting] = useState(false);
   const [ytUrl, setYtUrl] = useState("");
-  const [ytDownloading, setYtDownloading] = useState(false);
-  const [ytProgress, setYtProgress] = useState<{
-    status: string;
-    message: string;
-    percent: number;
-    videoTitle: string | null;
-    videoIndex: number | null;
-    totalVideos: number | null;
-  } | null>(null);
+  const ytDownload = useYoutubeDownload();
 
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -115,21 +107,6 @@ export function ImportCourse({ className }: ImportCourseProps) {
   useEffect(() => {
     getCustomCategories().then(setCustomCategories).catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (!ytDownloading) return;
-    const unlisten = listen<{
-      status: string;
-      message: string;
-      percent: number;
-      videoTitle: string | null;
-      videoIndex: number | null;
-      totalVideos: number | null;
-    }>("ytdlp-progress", (event) => {
-      setYtProgress(event.payload);
-    });
-    return () => { unlisten.then((fn) => fn()); };
-  }, [ytDownloading]);
 
   const handleParseCourse = async (folderPath: string) => {
     setIsLoading(true);
@@ -188,27 +165,15 @@ export function ImportCourse({ className }: ImportCourseProps) {
   const handleYoutubeDownload = async () => {
     if (!ytUrl.trim()) return;
     setParseError(null);
-    setYtDownloading(true);
 
     try {
-      const status = await checkYtdlp();
-      if (!status.available) {
-        setParseError("yt-dlp não encontrado. Instale-o e adicione ao PATH: https://github.com/yt-dlp/yt-dlp");
-        return;
-      }
-
-      // Ask user for output folder
       const { open } = await import("@tauri-apps/plugin-dialog");
       const outputDir = await open({ directory: true, multiple: false, title: "Pasta de destino para o download" });
       if (!outputDir) return;
 
-      const folderPath = await downloadYoutubePlaylist(ytUrl.trim(), outputDir as string);
-      await handleParseCourse(folderPath);
+      ytDownload.start(ytUrl.trim(), outputDir as string);
     } catch (err) {
-      setParseError(typeof err === "string" ? err : "Erro ao baixar playlist do YouTube");
-    } finally {
-      setYtDownloading(false);
-      setYtProgress(null);
+      setParseError(typeof err === "string" ? err : "Erro ao iniciar download");
     }
   };
 
@@ -395,49 +360,15 @@ export function ImportCourse({ className }: ImportCourseProps) {
                   </div>
                   <button
                     onClick={handleYoutubeDownload}
-                    disabled={!ytUrl.trim() || ytDownloading}
+                    disabled={!ytUrl.trim() || ytDownload.active}
                     className={cn(
                       "flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-primary-foreground transition-opacity",
-                      (!ytUrl.trim() || ytDownloading) ? "opacity-50 cursor-not-allowed" : "hover:opacity-90",
+                      (!ytUrl.trim() || ytDownload.active) ? "opacity-50 cursor-not-allowed" : "hover:opacity-90",
                     )}
                   >
                     <UploadSimple className="size-4" weight="bold" />
-                    Baixar e Importar
+                    {ytDownload.active ? "Baixando..." : "Baixar e Importar"}
                   </button>
-
-                  {ytDownloading && ytProgress && (
-                    <div className="w-full max-w-md mt-2">
-                      <div className="rounded-xl border border-border bg-card p-4">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Lottie animationData={loadingAnimation} loop className="size-8" />
-                          <div className="min-w-0 flex-1">
-                            <p className="font-sans text-sm font-semibold text-foreground">
-                              {ytProgress.status === "done" ? "Concluído!" : ytProgress.status === "processing" ? "Processando..." : "Baixando..."}
-                            </p>
-                            {ytProgress.videoTitle && (
-                              <p className="truncate font-sans text-xs text-muted-foreground">
-                                {ytProgress.videoTitle}
-                              </p>
-                            )}
-                          </div>
-                          {ytProgress.videoIndex && ytProgress.totalVideos && (
-                            <span className="shrink-0 font-mono text-xs font-medium text-muted-foreground">
-                              {ytProgress.videoIndex}/{ytProgress.totalVideos}
-                            </span>
-                          )}
-                        </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                          <div
-                            className="h-full rounded-full bg-primary transition-[width] duration-300"
-                            style={{ width: `${Math.min(ytProgress.percent, 100)}%` }}
-                          />
-                        </div>
-                        <p className="mt-2 truncate font-mono text-[10px] text-muted-foreground/60">
-                          {ytProgress.message}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                   <p className="font-sans text-xs text-muted-foreground/50">
                     Requer yt-dlp instalado no sistema
                   </p>
