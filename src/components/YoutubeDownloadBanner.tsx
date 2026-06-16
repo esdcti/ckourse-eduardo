@@ -67,15 +67,15 @@ export function YoutubeDownloadBanner() {
         </div>
 
         {/* Actions */}
-        {isDone && parsedCourse && (
+        {isDone && (
           <button
             onClick={() => {
-              navigate("/import", { state: { parsedCourse, folderPath } });
+              navigate("/");
               dismiss();
             }}
             className="shrink-0 rounded-lg bg-primary px-3 py-2 font-sans text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
-            Importar
+            Ver curso
           </button>
         )}
 

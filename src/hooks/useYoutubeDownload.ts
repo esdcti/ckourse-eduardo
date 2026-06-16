@@ -87,12 +87,21 @@ export function useYoutubeDownloadProvider(): YoutubeDownloadState {
       const folder = await downloadYoutubePlaylist(url, outputDir);
       setFolderPath(folder);
 
-      // Auto-parse the folder
+      // Auto-parse and auto-import the course
       try {
         const parsed = await parseCourseFolder(folder);
         setParsedCourse(parsed);
+
+        // Auto-import with defaults
+        const { importCourse } = await import("@/lib/store");
+        await importCourse(parsed, {
+          title: parsed.title,
+          author: "",
+          accentColor: "#61DAFB",
+          category: "other",
+        });
       } catch {
-        // Parse failed but download succeeded - user can import manually
+        // Parse/import failed - user can import manually via the banner button
       }
 
       setProgress({
