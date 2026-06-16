@@ -370,20 +370,20 @@ export function ImportCourse({ className }: ImportCourseProps) {
                     {ytDownload.active ? "Download em andamento..." : "Baixar e Importar"}
                   </button>
 
-                  {ytDownload.active && ytDownload.progress && (
+                  {ytDownload.active && (
                     <div className="w-full max-w-md mt-4">
                       <div className="rounded-xl border border-border bg-card p-4">
                         <div className="flex items-center justify-between mb-2">
                           <p className="font-sans text-sm font-semibold text-foreground">
-                            {ytDownload.progress.status === "done" ? "Concluído!" : "Baixando..."}
+                            {ytDownload.progress?.status === "done" ? "Concluído!" : "Baixando..."}
                           </p>
-                          {ytDownload.progress.videoIndex != null && ytDownload.progress.totalVideos != null && (
+                          {ytDownload.progress?.videoIndex != null && ytDownload.progress?.totalVideos != null && (
                             <span className="font-mono text-xs font-medium text-muted-foreground">
                               {ytDownload.progress.videoIndex}/{ytDownload.progress.totalVideos}
                             </span>
                           )}
                         </div>
-                        {ytDownload.progress.videoTitle && (
+                        {ytDownload.progress?.videoTitle && (
                           <p className="truncate font-sans text-xs text-muted-foreground mb-2">
                             🎬 {ytDownload.progress.videoTitle}
                           </p>
@@ -391,9 +391,12 @@ export function ImportCourse({ className }: ImportCourseProps) {
                         <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                           <div
                             className="h-full rounded-full bg-primary transition-[width] duration-300"
-                            style={{ width: `${Math.min(ytDownload.progress.percent, 100)}%` }}
+                            style={{ width: `${Math.min(ytDownload.progress?.percent ?? 0, 100)}%` }}
                           />
                         </div>
+                        {!ytDownload.progress && (
+                          <p className="mt-2 font-sans text-xs text-muted-foreground">Conectando ao YouTube...</p>
+                        )}
                       </div>
                     </div>
                   )}

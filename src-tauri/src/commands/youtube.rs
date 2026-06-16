@@ -117,6 +117,9 @@ pub async fn download_youtube_playlist(
     if let Some(stdout) = child.stdout.take() {
         let reader = BufReader::new(stdout);
         let app_clone = app.clone();
+        let mut last_video_index: Option<u32> = None;
+        let mut last_total_videos: Option<u32> = None;
+        let mut last_video_title: Option<String> = None;
 
         for line in reader.lines().map_while(Result::ok) {
             log_lines.push(format!("[stdout] {}", line));
@@ -129,9 +132,9 @@ pub async fn download_youtube_playlist(
                     status: "downloading".to_string(),
                     message: line.trim().to_string(),
                     percent: 0.0,
-                    video_title: None,
-                    video_index: None,
-                    total_videos: None,
+                    video_title: last_video_title.clone(),
+                    video_index: last_video_index,
+                    total_videos: last_total_videos,
                 };
 
                 // Parse percent
@@ -143,12 +146,18 @@ pub async fn download_youtube_playlist(
                 }
 
                 // Parse "Downloading video X of Y"
-                if line.contains("Downloading video") {
+                if line.contains("Downloading video") || line.contains("Downloading item") {
                     let parts: Vec<&str> = line.split_whitespace().collect();
                     if let Some(of_idx) = parts.iter().position(|&w| w == "of") {
                         if of_idx > 0 {
-                            progress.video_index = parts[of_idx - 1].parse().ok();
-                            progress.total_videos = parts.get(of_idx + 1).and_then(|s| s.parse().ok());
+                            if let Some(idx) = parts[of_idx - 1].parse().ok() {
+                                last_video_index = Some(idx);
+                                progress.video_index = Some(idx);
+                            }
+                            if let Some(total) = parts.get(of_idx + 1).and_then(|s| s.parse().ok()) {
+                                last_total_videos = Some(total);
+                                progress.total_videos = Some(total);
+                            }
                         }
                     }
                 }
@@ -168,6 +177,7 @@ pub async fn download_youtube_playlist(
                         // Convert underscores back to spaces for display
                         let title = title.trim().replace('_', " ");
                         if !title.is_empty() {
+                            last_video_title = Some(title.clone());
                             progress.video_title = Some(title);
                         }
                     }
