@@ -4,7 +4,7 @@ import { useYoutubeDownload } from "@/hooks/useYoutubeDownload";
 import { EASE_OUT } from "@/lib/constants";
 
 export function YoutubeDownloadBanner() {
-  const { active, progress, error, parsedCourse, folderPath, dismiss } = useYoutubeDownload();
+  const { active, progress, error, dismiss } = useYoutubeDownload();
   const navigate = useNavigate();
 
   if (!active) return null;
