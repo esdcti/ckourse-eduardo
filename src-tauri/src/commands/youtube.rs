@@ -65,17 +65,15 @@ pub async fn download_youtube_playlist(
     let mut child = Command::new("yt-dlp")
         .args([
             "--yes-playlist",
-            "-f", "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b",
-            "--merge-output-format", "mp4",
+            "-f", "b[ext=mp4]/b",
             "--write-subs",
-            "--sub-langs",
-            "all",
-            "--convert-subs",
-            "vtt",
+            "--sub-langs", "all",
+            "--convert-subs", "vtt",
             "--newline",
             "--no-colors",
             "--windows-filenames",
             "--restrict-filenames",
+            "--no-warnings",
             "--output",
             &output_template,
             &url,
@@ -173,7 +171,15 @@ pub async fn download_youtube_playlist(
         .and_then(|h| h.join().ok())
         .unwrap_or_default();
 
-    if status.success() {
+    // Check if any video files were actually downloaded (yt-dlp returns exit 1 for warnings)
+    let has_videos = std::fs::read_dir(output_path)
+        .map(|entries| entries.filter_map(|e| e.ok()).any(|e| {
+            let name = e.file_name().to_string_lossy().to_lowercase();
+            name.ends_with(".mp4") || name.ends_with(".mkv") || name.ends_with(".webm")
+        }))
+        .unwrap_or(false);
+
+    if status.success() || has_videos {
         let _ = app.emit("ytdlp-progress", YtDlpProgress {
             status: "done".to_string(),
             message: "Download concluído!".to_string(),
@@ -185,8 +191,11 @@ pub async fn download_youtube_playlist(
         Ok(output_dir)
     } else {
         let error_msg = stderr_lines
+            .iter()
+            .filter(|l| !l.contains("WARNING"))
             .last()
             .cloned()
+            .or_else(|| stderr_lines.last().cloned())
             .unwrap_or_else(|| "Erro desconhecido".to_string());
         let _ = app.emit("ytdlp-progress", YtDlpProgress {
             status: "error".to_string(),
