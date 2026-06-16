@@ -94,6 +94,8 @@ pub async fn download_youtube_playlist(
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
+        .env("PYTHONIOENCODING", "utf-8")
+        .env("PYTHONUTF8", "1")
         .spawn()
         .map_err(|e| format!("Erro ao executar yt-dlp: {}. Verifique se está instalado e no PATH.", e))?;
 
