@@ -48,7 +48,7 @@ pub async fn download_youtube_playlist(
     std::fs::create_dir_all(output_path).map_err(|e| format!("Erro ao criar pasta: {}", e))?;
 
     let output_template = output_path
-        .join("%(playlist_index)03d - %(title).80B.%(ext)s")
+        .join("%(playlist_index)03d - %(title)s.%(ext)s")
         .to_string_lossy()
         .to_string();
 
@@ -72,10 +72,11 @@ pub async fn download_youtube_playlist(
             "all",
             "--convert-subs",
             "vtt",
-            "--write-thumbnail",
             "--newline",
             "--no-colors",
             "--windows-filenames",
+            "--restrict-filenames",
+            "--no-playlist-thumbnail",
             "--output",
             &output_template,
             &url,
