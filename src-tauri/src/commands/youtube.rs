@@ -76,7 +76,6 @@ pub async fn download_youtube_playlist(
             "--no-colors",
             "--windows-filenames",
             "--restrict-filenames",
-            "--no-playlist-thumbnail",
             "--output",
             &output_template,
             &url,
