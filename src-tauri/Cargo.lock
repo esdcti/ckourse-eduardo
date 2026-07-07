@@ -464,7 +464,7 @@ dependencies = [
 
 [[package]]
 name = "ckourse"
-version = "1.0.4"
+version = "1.6.4"
 dependencies = [
  "percent-encoding",
  "rusqlite",

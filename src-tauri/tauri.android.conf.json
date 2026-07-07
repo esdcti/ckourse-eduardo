@@ -1,0 +1,10 @@
+{
+  "bundle": {
+    "externalBin": []
+  },
+  "plugins": {
+    "updater": {
+      "active": false
+    }
+  }
+}
