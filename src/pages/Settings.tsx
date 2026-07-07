@@ -21,6 +21,8 @@ import {
   TrashIcon as Trash,
   WarningCircleIcon as WarningCircle,
   XIcon as X,
+  GoogleDriveLogoIcon as GoogleDriveLogo,
+  CloudIcon as Cloud,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { LibraryStats } from "@/types";
@@ -29,6 +31,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { EASE_OUT } from "@/lib/constants";
 import { useUpdater } from "@/hooks/useUpdater";
 import { getVersion } from "@tauri-apps/api/app";
+import { invoke } from "@tauri-apps/api/core";
 import { useI18n } from "@/lib/i18n";
 import { LOCALES } from "@/lib/i18n";
 
@@ -666,12 +669,74 @@ export function Settings({ className }: SettingsProps) {
           </div>
         </SectionCard>
 
-        <UpdatesSection index={3} />
+        <SectionCard
+          title="Integração Google Drive"
+          icon={<GoogleDriveLogo className="size-4 text-blue-500" weight="bold" />}
+          index={3}
+        >
+          <div className="px-3 py-2">
+            <p className="mb-4 font-sans text-xs text-muted-foreground">
+              Configure suas credenciais da API do Google Drive (Client ID e Client Secret) para permitir o streaming de cursos diretamente da nuvem sem ocupar espaço no seu dispositivo.
+            </p>
+            
+            <SettingRow
+              icon={<Cloud className="size-4" />}
+              label="Client ID (Google Cloud)"
+              description="ID do Cliente OAuth 2.0"
+            >
+              <input
+                type="text"
+                value={settings.gdrive_client_id || ""}
+                onChange={(e) => update("gdrive_client_id", e.target.value)}
+                placeholder="Ex: 873301581649-abc..."
+                className="w-full max-w-[280px] rounded-lg border border-border bg-secondary px-3 py-1.5 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 hover:border-muted-foreground/30 focus:border-primary"
+              />
+            </SettingRow>
+
+            <SettingRow
+              icon={<Cloud className="size-4" />}
+              label="Client Secret"
+              description="Segredo do Cliente OAuth"
+            >
+              <input
+                type="password"
+                value={settings.gdrive_client_secret || ""}
+                onChange={(e) => update("gdrive_client_secret", e.target.value)}
+                placeholder="Ex: GOCSPX-wxGW..."
+                className="w-full max-w-[280px] rounded-lg border border-border bg-secondary px-3 py-1.5 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground/40 hover:border-muted-foreground/30 focus:border-primary"
+              />
+            </SettingRow>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await invoke("start_google_drive_oauth");
+                    toast.success(res as string);
+                  } catch (e) {
+                    toast.error(e as string);
+                  }
+                }}
+                disabled={!settings.gdrive_client_id || !settings.gdrive_client_secret}
+                className={cn(
+                  "rounded-lg px-4 py-2 font-sans text-sm font-semibold transition-colors",
+                  settings.gdrive_client_id && settings.gdrive_client_secret
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "cursor-not-allowed bg-secondary text-muted-foreground/40"
+                )}
+              >
+                Conectar Conta do Google
+              </button>
+            </div>
+          </div>
+        </SectionCard>
+
+        <UpdatesSection index={4} />
 
         <SectionCard
           title={t.dangerZone}
           icon={<WarningCircle className="size-4 text-destructive" weight="bold" />}
-          index={4}
+          index={5}
         >
           <div className="flex items-center justify-between gap-4 rounded-lg px-2 py-3">
             <div className="flex items-center gap-3">

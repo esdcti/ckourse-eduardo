@@ -42,7 +42,7 @@ if ($devices) {
     npm run tauri -- android dev
 } else {
     Write-Host "Nenhum dispositivo USB. Gerando APK..." -ForegroundColor Yellow
-    npm run tauri -- android build
+    npm run tauri -- android build --debug
 
     # Localiza o APK gerado
     $apkSearch = Get-ChildItem -Path "src-tauri\gen\android\app\build\outputs\apk" -Recurse -Filter "*.apk" -ErrorAction SilentlyContinue |

@@ -21,6 +21,10 @@ function parse(raw: Record<string, string>): AppSettings {
     skip_forward_secs: Number(raw.skip_forward_secs) || 10,
     skip_backward_secs: Number(raw.skip_backward_secs) || 10,
     locale: raw.locale || "pt-BR",
+    gdrive_client_id: raw.gdrive_client_id,
+    gdrive_client_secret: raw.gdrive_client_secret,
+    gdrive_access_token: raw.gdrive_access_token,
+    gdrive_refresh_token: raw.gdrive_refresh_token,
   };
 }
 
