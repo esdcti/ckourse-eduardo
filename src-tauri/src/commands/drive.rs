@@ -73,10 +73,12 @@ pub async fn start_google_drive_oauth(
                     if res.status().is_success() {
                         let token_res: TokenResponse = res.json().await.map_err(|e| e.to_string())?;
 
-                        let conn = state.conn.lock().map_err(|e| e.to_string())?;
-                        db::set_setting(&conn, "gdrive_access_token", &token_res.access_token).map_err(|e| e.to_string())?;
-                        if let Some(refresh) = token_res.refresh_token {
-                            db::set_setting(&conn, "gdrive_refresh_token", &refresh).map_err(|e| e.to_string())?;
+                        {
+                            let conn = state.conn.lock().map_err(|e| e.to_string())?;
+                            db::set_setting(&conn, "gdrive_access_token", &token_res.access_token).map_err(|e| e.to_string())?;
+                            if let Some(refresh) = token_res.refresh_token {
+                                db::set_setting(&conn, "gdrive_refresh_token", &refresh).map_err(|e| e.to_string())?;
+                            }
                         }
 
                         let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<html><head><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;background:#09090b;color:#fafafa;text-align:center;}</style></head><body><div><h1 style='color:#3b82f6;'>✅ Conectado com sucesso!</h1><p>O Ckourse já está vinculado ao seu Google Drive.</p><p style='color:#71717a;'>Pode fechar esta janela e voltar para o aplicativo.</p><script>setTimeout(()=>window.close(), 2000);</script></div></body></html>";
