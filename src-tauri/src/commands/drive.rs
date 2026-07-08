@@ -34,7 +34,7 @@ pub async fn start_google_drive_oauth(
     }
 
     let auth_url = format!(
-        "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly&access_type=offline&prompt=consent",
+        "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly%20https://www.googleapis.com/auth/drive.appdata&access_type=offline&prompt=consent",
         urlencoding::encode(&client_id),
         urlencoding::encode(REDIRECT_URI)
     );

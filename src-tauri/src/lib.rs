@@ -92,6 +92,8 @@ pub fn run() {
             commands::download_youtube_playlist,
             commands::start_google_drive_oauth,
             commands::scan_google_drive,
+            commands::backup_database_to_drive,
+            commands::restore_database_from_drive,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

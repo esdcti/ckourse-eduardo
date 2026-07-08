@@ -709,27 +709,55 @@ export function Settings({ className }: SettingsProps) {
 
             {/* Connection status indicator */}
             {settings.gdrive_access_token ? (
-              <div className="mt-4 flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative flex size-3">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex size-3 rounded-full bg-emerald-500" />
+              <div className="mt-4 flex flex-col gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex size-3">
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex size-3 rounded-full bg-emerald-500" />
+                    </div>
+                    <div>
+                      <p className="font-sans text-sm font-medium text-emerald-400">Google Drive conectado</p>
+                      <p className="font-sans text-xs text-muted-foreground">Pronto para importar cursos do Drive</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-sans text-sm font-medium text-emerald-400">Google Drive conectado</p>
-                    <p className="font-sans text-xs text-muted-foreground">Pronto para importar cursos do Drive</p>
-                  </div>
+                  <button
+                    onClick={async () => {
+                      await update("gdrive_access_token", "");
+                      await update("gdrive_refresh_token", "");
+                      toast.success("Conta do Google Drive desconectada");
+                    }}
+                    className="rounded-lg border border-border px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/30 hover:text-destructive"
+                  >
+                    Desconectar
+                  </button>
                 </div>
-                <button
-                  onClick={async () => {
-                    await update("gdrive_access_token", "");
-                    await update("gdrive_refresh_token", "");
-                    toast.success("Conta do Google Drive desconectada");
-                  }}
-                  className="rounded-lg border border-border px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/30 hover:text-destructive"
-                >
-                  Desconectar
-                </button>
+                <div className="flex items-center gap-2 border-t border-emerald-500/10 pt-3">
+                  <button
+                    onClick={async () => {
+                      toast.promise(invoke("backup_database_to_drive"), {
+                        loading: "Enviando backup para a nuvem...",
+                        success: (msg) => msg as string,
+                        error: (err) => typeof err === "string" ? err : "Erro no backup"
+                      });
+                    }}
+                    className="flex-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 font-sans text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
+                  >
+                    ☁️ Fazer Backup na Nuvem
+                  </button>
+                  <button
+                    onClick={async () => {
+                      toast.promise(invoke("restore_database_from_drive"), {
+                        loading: "Baixando backup da nuvem...",
+                        success: (msg) => msg as string,
+                        error: (err) => typeof err === "string" ? err : "Erro ao restaurar"
+                      });
+                    }}
+                    className="flex-1 rounded-lg border border-border bg-secondary/50 px-3 py-2 font-sans text-xs font-medium text-foreground transition-colors hover:bg-secondary"
+                  >
+                    🔄 Restaurar da Nuvem
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="mt-4 flex items-center justify-between">
