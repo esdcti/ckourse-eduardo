@@ -19,10 +19,8 @@ struct TokenResponse {
 }
 
 #[tauri::command]
-pub async fn start_google_drive_oauth(
-    state: tauri::State<'_, DbState>,
-) -> Result<String, String> {
-    let (client_id, client_secret) = {
+pub async fn get_google_drive_auth_url(state: tauri::State<'_, DbState>) -> Result<String, String> {
+    let (client_id, _) = {
         let conn = state.conn.lock().map_err(|e| e.to_string())?;
         let settings = db::get_all_settings(&conn).map_err(|e| e.to_string())?;
         
@@ -37,7 +35,21 @@ pub async fn start_google_drive_oauth(
         urlencoding::encode(REDIRECT_URI)
     );
 
-    tauri_plugin_opener::open_url(auth_url, None::<&str>).map_err(|e| e.to_string())?;
+    Ok(auth_url)
+}
+
+#[tauri::command]
+pub async fn start_google_drive_oauth_server(
+    state: tauri::State<'_, DbState>,
+) -> Result<String, String> {
+    let (client_id, client_secret) = {
+        let conn = state.conn.lock().map_err(|e| e.to_string())?;
+        let settings = db::get_all_settings(&conn).map_err(|e| e.to_string())?;
+        
+        let cid = settings.iter().find(|(k, _)| k == "gdrive_client_id").map(|(_, v)| v.clone()).filter(|v| !v.trim().is_empty()).unwrap_or_else(|| DEFAULT_CLIENT_ID.to_string());
+        let sec = settings.iter().find(|(k, _)| k == "gdrive_client_secret").map(|(_, v)| v.clone()).filter(|v| !v.trim().is_empty()).unwrap_or_else(|| DEFAULT_CLIENT_SECRET.to_string());
+        (cid, sec)
+    };
 
     let listener = TcpListener::bind("127.0.0.1:3456").await.map_err(|e| format!("Porta 3456 ocupada. Tente novamente. {}", e))?;
     

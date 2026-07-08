@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import type { LibraryStats } from "@/types";
 import { getLibraryStats, deleteAllData, getPortableInfo, setCustomDataDir } from "@/lib/store";
 import { open } from "@tauri-apps/plugin-dialog";
+import { open as openUrl } from "@tauri-apps/plugin-opener";
 import { EASE_OUT } from "@/lib/constants";
 import { useUpdater } from "@/hooks/useUpdater";
 import { getVersion } from "@tauri-apps/api/app";
@@ -768,7 +769,9 @@ export function Settings({ className }: SettingsProps) {
                 <button
                   onClick={async () => {
                     try {
-                      const res = await invoke("start_google_drive_oauth");
+                      const url = await invoke("get_google_drive_auth_url");
+                      await openUrl(url as string);
+                      const res = await invoke("start_google_drive_oauth_server");
                       toast.success(res as string);
                       // Reload settings to get the new tokens
                       await reload();
