@@ -138,7 +138,7 @@ interface SettingRowProps {
 
 function SettingRow({ icon, label, description, children }: SettingRowProps) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg px-2 py-3">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-lg px-2 py-3">
       <div className="flex items-center gap-3">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
           {icon}

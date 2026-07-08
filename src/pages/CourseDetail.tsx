@@ -604,10 +604,10 @@ function CourseDetailInner({
       >
         <Link
           to={backTo}
-          className="inline-flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:text-foreground shrink-0"
         >
-          <ArrowLeft className="size-3.5" />
-          {t.back}
+          <ArrowLeft className="size-3.5 shrink-0" />
+          <span className="hidden sm:inline">{t.back}</span>
         </Link>
 
         <div className="flex items-center gap-2">
@@ -620,13 +620,13 @@ function CourseDetailInner({
             style={{ transitionTimingFunction: SNAPPY }}
           >
             <SidebarSimple
-              className="size-3.5 transition-transform duration-300"
+              className="size-3.5 transition-transform duration-300 shrink-0"
               style={{
                 transform: curriculumOpen ? "scaleX(1)" : "scaleX(-1)",
                 transitionTimingFunction: SNAPPY,
               }}
             />
-            {curriculumOpen ? t.hideCurriculum : t.showCurriculum}
+            <span className="hidden sm:inline">{curriculumOpen ? t.hideCurriculum : t.showCurriculum}</span>
           </button>
           <button
             onClick={onToggleBookmark}
@@ -636,16 +636,16 @@ function CourseDetailInner({
             )}
             style={{ transitionTimingFunction: SNAPPY }}
           >
-            <BookmarkSimple className="size-3.5" weight={course.bookmarked ? "fill" : "regular"} />
-            {course.bookmarked ? t.bookmarked : t.bookmark}
+            <BookmarkSimple className="size-3.5 shrink-0" weight={course.bookmarked ? "fill" : "regular"} />
+            <span className="hidden sm:inline">{course.bookmarked ? t.bookmarked : t.bookmark}</span>
           </button>
           <button
             onClick={onEdit}
             className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             style={{ transitionTimingFunction: SNAPPY }}
           >
-            <PencilSimple className="size-3.5" />
-            {t.edit}
+            <PencilSimple className="size-3.5 shrink-0" />
+            <span className="hidden sm:inline">{t.edit}</span>
           </button>
           <button
             onClick={() => setFocusMode((f) => !f)}
@@ -697,39 +697,41 @@ function CourseDetailInner({
           />
 
           {activeLesson && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <h2 className="font-sans text-base font-semibold text-foreground">
                 {activeLesson.title}
               </h2>
-              <button
-                onClick={() => handleToggleFavorite(activeLesson.id)}
-                className={cn(
-                  "rounded-md p-1 transition-colors",
-                  activeLesson.favorited
-                    ? "text-red-500 hover:bg-red-500/10"
-                    : "text-muted-foreground hover:bg-secondary hover:text-red-400",
-                )}
-              >
-                <Heart
-                  className="size-3.5"
-                  weight={activeLesson.favorited ? "fill" : "regular"}
-                />
-              </button>
-              <button
-                onClick={() => handleToggleComplete(activeLesson.id)}
-                className={cn(
-                  "ml-auto flex items-center gap-1 rounded-md px-2 py-1 font-sans text-xs font-medium transition-colors",
-                  activeLesson.completed
-                    ? "text-primary hover:bg-primary/10"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                )}
-              >
-                <CheckCircle
-                  className="size-3.5"
-                  weight={activeLesson.completed ? "fill" : "regular"}
-                />
-                {activeLesson.completed ? t.completed : t.markComplete}
-              </button>
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <button
+                  onClick={() => handleToggleFavorite(activeLesson.id)}
+                  className={cn(
+                    "rounded-md p-1 transition-colors",
+                    activeLesson.favorited
+                      ? "text-red-500 hover:bg-red-500/10"
+                      : "text-muted-foreground hover:bg-secondary hover:text-red-400",
+                  )}
+                >
+                  <Heart
+                    className="size-4"
+                    weight={activeLesson.favorited ? "fill" : "regular"}
+                  />
+                </button>
+                <button
+                  onClick={() => handleToggleComplete(activeLesson.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-sans text-xs font-medium transition-colors",
+                    activeLesson.completed
+                      ? "text-primary hover:bg-primary/10"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground border border-border",
+                  )}
+                >
+                  <CheckCircle
+                    className="size-4 shrink-0"
+                    weight={activeLesson.completed ? "fill" : "regular"}
+                  />
+                  <span>{activeLesson.completed ? t.completed : t.markComplete}</span>
+                </button>
+              </div>
             </div>
           )}
 
