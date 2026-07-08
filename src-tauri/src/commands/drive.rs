@@ -484,6 +484,17 @@ pub async fn restore_database_from_drive(
 
     let bytes = download_res.bytes().await.map_err(|e| e.to_string())?;
 
+    let db_path = portable_state.data_dir.join("ckourse.db");
+
+    // SAFETY BACKUP: Ensure WAL is flushed and make a copy of the current database before overwriting it
+    {
+        if let Ok(mut _conn) = state.conn.lock() {
+            let _ = _conn.execute("PRAGMA wal_checkpoint(TRUNCATE)", []);
+        }
+    }
+    let safety_backup_path = portable_state.data_dir.join("ckourse_safety_backup.db");
+    let _ = std::fs::copy(&db_path, &safety_backup_path);
+
     let temp_db_path = portable_state.data_dir.join("ckourse_restored.db");
     std::fs::write(&temp_db_path, bytes).map_err(|e| format!("Erro ao salvar banco baixado: {}", e))?;
 
