@@ -35,6 +35,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useCourseTitles } from "@/components/app-shell/CourseTitleContext";
 import { useI18n, type Translations } from "@/lib/i18n";
 import {
+  getCourse,
   getCourseDetail,
   getCourseNotes,
   getLessonSubtitles,
@@ -97,15 +98,6 @@ export function CourseDetail({ className }: CourseDetailProps) {
   const { courseId } = useParams<{ courseId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1024px)");
-    const onChange = (e: MediaQueryListEvent | MediaQueryList) => setIsSmallScreen(e.matches);
-    onChange(mq);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
   const numericId = Number(courseId);
   const isValidId = courseId != null && !isNaN(numericId) && numericId > 0;
   const lessonParam = searchParams.get("lesson");
@@ -231,6 +223,15 @@ function CourseDetailInner({
   const { settings, loaded: settingsLoaded } = useSettings();
   const { setTitle: setBreadcrumbTitle } = useCourseTitles();
   const t = useI18n();
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1024px)");
+    const onChange = (e: MediaQueryListEvent | MediaQueryList) => setIsSmallScreen(e.matches);
+    onChange(mq);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
   const allLessons = courseData.sections.flatMap((s) => s.lessons);
   const [courseSpeed, setCourseSpeedState] = useState<number | null>(null);
 
