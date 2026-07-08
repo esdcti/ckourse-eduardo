@@ -365,6 +365,12 @@ pub async fn backup_database_to_drive(
 
     let db_path = portable_state.data_dir.join("ckourse.db");
 
+    // Force WAL checkpoint so all data is written to the .db file
+    {
+        let _conn = state.conn.lock().map_err(|e| e.to_string())?;
+        _conn.execute("PRAGMA wal_checkpoint(TRUNCATE)", []).map_err(|e| format!("Erro ao sincronizar banco: {}", e))?;
+    }
+
     let file_bytes = tokio::fs::read(&db_path).await.map_err(|e| format!("Erro ao ler banco local: {}", e))?;
 
     let search_url = "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='ckourse.db'";
@@ -478,10 +484,17 @@ pub async fn restore_database_from_drive(
 
     let bytes = download_res.bytes().await.map_err(|e| e.to_string())?;
 
-    let db_path = portable_state.data_dir.join("ckourse.db");
+    let temp_db_path = portable_state.data_dir.join("ckourse_restored.db");
+    std::fs::write(&temp_db_path, bytes).map_err(|e| format!("Erro ao salvar banco baixado: {}", e))?;
 
-    let _conn = state.conn.lock().map_err(|e| e.to_string())?;
-    std::fs::write(&db_path, bytes).map_err(|e| format!("Erro ao salvar banco local: {}", e))?;
+    {
+        let _conn = state.conn.lock().map_err(|e| e.to_string())?;
+        let src_conn = rusqlite::Connection::open(&temp_db_path).map_err(|e| format!("Erro ao abrir banco baixado: {}", e))?;
+        let mut backup = rusqlite::backup::Backup::new(&_conn, "main", &src_conn, "main").map_err(|e| e.to_string())?;
+        backup.step(-1).map_err(|e| e.to_string())?;
+    }
 
-    Ok("Backup restaurado com sucesso! Reinicie o aplicativo.".to_string())
+    let _ = std::fs::remove_file(temp_db_path);
+
+    Ok("Backup restaurado com sucesso! Atualize o app para ver os dados.".to_string())
 }

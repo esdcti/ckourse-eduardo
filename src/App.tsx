@@ -102,6 +102,20 @@ function KeepAliveRoutes() {
   );
 }
 
+import { invoke } from "@tauri-apps/api/core";
+
+function AutoBackup() {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      invoke("backup_database_to_drive").catch(() => {
+        // Silently fail if not connected or error occurs
+      });
+    }, 15 * 60 * 1000); // 15 minutes
+    return () => clearInterval(interval);
+  }, []);
+  return null;
+}
+
 function App() {
   const settingsCtx = useSettingsProvider();
   const updaterCtx = useUpdaterProvider();
@@ -115,6 +129,7 @@ function App() {
       <I18nContext.Provider value={t}>
         <UpdaterContext.Provider value={updaterCtx}>
           <YoutubeDownloadContext.Provider value={ytCtx}>
+            <AutoBackup />
             <AppShell>
               <KeepAliveRoutes />
             </AppShell>
