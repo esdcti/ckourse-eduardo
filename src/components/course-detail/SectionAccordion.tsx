@@ -73,13 +73,14 @@ export function SectionAccordion({
 
       <div
         style={{
-          maxHeight: open ? section.lessons.length * 52 + 8 : 0,
+          display: "grid",
+          gridTemplateRows: open ? "1fr" : "0fr",
           opacity: open ? 1 : 0,
-          transition: `max-height 350ms ${EASE}, opacity 250ms ${EASE}`,
+          transition: `grid-template-rows 350ms ${EASE}, opacity 250ms ${EASE}`,
         }}
-        className="overflow-hidden"
       >
-        <div className="flex flex-col gap-px px-2 pt-1 pb-2">
+        <div className="overflow-hidden">
+          <div className="flex flex-col gap-px px-2 pt-1 pb-2">
           {section.lessons.map((lesson, index) => {
             const isActive = lesson.id === activeLessonId;
 
@@ -156,6 +157,7 @@ export function SectionAccordion({
               </button>
             );
           })}
+          </div>
         </div>
       </div>
     </div>
