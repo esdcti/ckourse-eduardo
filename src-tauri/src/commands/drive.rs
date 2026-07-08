@@ -481,7 +481,7 @@ pub async fn restore_database_from_drive(
     let db_path = portable_state.data_dir.join("ckourse.db");
 
     let _conn = state.conn.lock().map_err(|e| e.to_string())?;
-    tokio::fs::write(&db_path, bytes).await.map_err(|e| format!("Erro ao salvar banco local: {}", e))?;
+    std::fs::write(&db_path, bytes).map_err(|e| format!("Erro ao salvar banco local: {}", e))?;
 
     Ok("Backup restaurado com sucesso! Reinicie o aplicativo.".to_string())
 }
