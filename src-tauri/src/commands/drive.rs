@@ -357,14 +357,13 @@ struct AppDataList {
 
 #[tauri::command]
 pub async fn backup_database_to_drive(
-    app_handle: tauri::AppHandle,
+    portable_state: tauri::State<'_, crate::portable::PortableState>,
     state: tauri::State<'_, DbState>,
 ) -> Result<String, String> {
     let mut token = get_valid_token(&state).await?;
     let client = Client::new();
 
-    let portable_info = crate::commands::portable::get_portable_info(&app_handle);
-    let db_path = portable_info.data_dir.join("ckourse.db");
+    let db_path = portable_state.data_dir.join("ckourse.db");
 
     let file_bytes = tokio::fs::read(&db_path).await.map_err(|e| format!("Erro ao ler banco local: {}", e))?;
 
@@ -433,7 +432,7 @@ pub async fn backup_database_to_drive(
 
 #[tauri::command]
 pub async fn restore_database_from_drive(
-    app_handle: tauri::AppHandle,
+    portable_state: tauri::State<'_, crate::portable::PortableState>,
     state: tauri::State<'_, DbState>,
 ) -> Result<String, String> {
     let mut token = get_valid_token(&state).await?;
@@ -479,8 +478,7 @@ pub async fn restore_database_from_drive(
 
     let bytes = download_res.bytes().await.map_err(|e| e.to_string())?;
 
-    let portable_info = crate::commands::portable::get_portable_info(&app_handle);
-    let db_path = portable_info.data_dir.join("ckourse.db");
+    let db_path = portable_state.data_dir.join("ckourse.db");
 
     let _conn = state.conn.lock().map_err(|e| e.to_string())?;
     tokio::fs::write(&db_path, bytes).await.map_err(|e| format!("Erro ao salvar banco local: {}", e))?;
