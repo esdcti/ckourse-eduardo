@@ -624,12 +624,12 @@ export function Settings({ className }: SettingsProps) {
           )}
           <div className="mt-3 rounded-lg bg-secondary/50 px-3 py-2.5">
             <div className="font-sans text-xs text-muted-foreground">{t.databaseLocation}</div>
-            <div className="mt-0.5 truncate font-mono text-xs text-foreground/70">
+            <div className="mt-0.5 break-all font-mono text-xs text-foreground/70">
               {stats?.dbPath}
             </div>
           </div>
           <DataDirPicker />
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-col sm:flex-row items-stretch gap-2">
             <button
               onClick={async () => {
                 const { save } = await import("@tauri-apps/plugin-dialog");
@@ -710,7 +710,7 @@ export function Settings({ className }: SettingsProps) {
             {/* Connection status indicator */}
             {settings.gdrive_access_token ? (
               <div className="mt-4 flex flex-col gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="relative flex size-3">
                       <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -727,12 +727,12 @@ export function Settings({ className }: SettingsProps) {
                       await update("gdrive_refresh_token", "");
                       toast.success("Conta do Google Drive desconectada");
                     }}
-                    className="rounded-lg border border-border px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/30 hover:text-destructive"
+                    className="self-start sm:self-auto rounded-lg border border-border px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/30 hover:text-destructive"
                   >
                     Desconectar
                   </button>
                 </div>
-                <div className="flex items-center gap-2 border-t border-emerald-500/10 pt-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 border-t border-emerald-500/10 pt-3">
                   <button
                     onClick={async () => {
                       toast.promise(invoke("backup_database_to_drive"), {
@@ -798,7 +798,7 @@ export function Settings({ className }: SettingsProps) {
           icon={<WarningCircle className="size-4 text-destructive" weight="bold" />}
           index={5}
         >
-          <div className="flex items-center justify-between gap-4 rounded-lg px-2 py-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg px-2 py-3">
             <div className="flex items-center gap-3">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
                 <Trash className="size-4" />

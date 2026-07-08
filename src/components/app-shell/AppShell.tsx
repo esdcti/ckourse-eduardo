@@ -133,24 +133,24 @@ function AppShellInner({ children }: AppShellProps) {
           )}
         </div>
 
-        <div data-tauri-drag-region className="flex flex-1 items-center px-6 gap-4">
-          <nav className="flex items-center gap-1.5">
+        <div data-tauri-drag-region className="flex flex-1 items-center px-4 md:px-6 gap-2 md:gap-4 min-w-0">
+          <nav className="flex items-center gap-1.5 min-w-0 flex-1">
             {breadcrumbs.map((crumb, i) => {
               const isLast = i === breadcrumbs.length - 1;
               return (
-                <div key={i} className="flex items-center gap-1.5">
+                <div key={i} className="flex items-center gap-1.5 min-w-0 shrink">
                   {i > 0 && (
-                    <CaretRight className="size-3.5 text-muted-foreground/50" />
+                    <CaretRight className="size-3.5 shrink-0 text-muted-foreground/50" />
                   )}
                   {crumb.path && !isLast ? (
                     <Link
                       to={crumb.path}
-                      className="font-heading text-lg font-bold text-muted-foreground transition-colors hover:text-foreground"
+                      className="font-heading text-base md:text-lg font-bold text-muted-foreground transition-colors hover:text-foreground truncate"
                     >
                       {crumb.label}
                     </Link>
                   ) : (
-                    <h1 className="font-heading text-lg font-bold text-foreground">
+                    <h1 className="font-heading text-base md:text-lg font-bold text-foreground truncate">
                       {crumb.label}
                     </h1>
                   )}
@@ -159,7 +159,7 @@ function AppShellInner({ children }: AppShellProps) {
             })}
           </nav>
 
-          <div data-tauri-drag-region className="flex-1 self-stretch" />
+          <div data-tauri-drag-region className="flex-1 self-stretch hidden md:block" />
 
           <div className="flex items-center gap-2">
             <AnimatedThemeToggler className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground [&_svg]:size-4" />
