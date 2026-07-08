@@ -7,7 +7,7 @@ import {
   forwardRef,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   PlayIcon as Play,
   PauseIcon as Pause,
