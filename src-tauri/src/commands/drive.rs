@@ -114,6 +114,11 @@ struct DriveListResponse {
     files: Vec<DriveFile>,
 }
 
+#[derive(Deserialize, Debug)]
+struct DriveFileName {
+    name: String,
+}
+
 async fn get_valid_token(state: &tauri::State<'_, DbState>) -> Result<String, String> {
     let access_token = {
         let conn = state.conn.lock().map_err(|e| e.to_string())?;
@@ -221,7 +226,7 @@ async fn get_folder_name(state: &tauri::State<'_, DbState>, folder_id: &str) -> 
     }
 
     if res.status().is_success() {
-        let file: DriveFile = res.json().await.map_err(|e| e.to_string())?;
+        let file: DriveFileName = res.json().await.map_err(|e| e.to_string())?;
         Ok(file.name)
     } else {
         Err("Não foi possível acessar a pasta base. Verifique se o link está correto.".to_string())

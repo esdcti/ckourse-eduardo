@@ -447,7 +447,7 @@ function UpdatesSection({ index }: { index: number }) {
 }
 
 export function Settings({ className }: SettingsProps) {
-  const { settings, update } = useSettings();
+  const { settings, update, reload } = useSettings();
   const navigate = useNavigate();
   const [stats, setStats] = useState<LibraryStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -707,27 +707,59 @@ export function Settings({ className }: SettingsProps) {
               />
             </SettingRow>
 
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={async () => {
-                  try {
-                    const res = await invoke("start_google_drive_oauth");
-                    toast.success(res as string);
-                  } catch (e) {
-                    toast.error(e as string);
-                  }
-                }}
-                disabled={!settings.gdrive_client_id || !settings.gdrive_client_secret}
-                className={cn(
-                  "rounded-lg px-4 py-2 font-sans text-sm font-semibold transition-colors",
-                  settings.gdrive_client_id && settings.gdrive_client_secret
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "cursor-not-allowed bg-secondary text-muted-foreground/40"
-                )}
-              >
-                Conectar Conta do Google
-              </button>
-            </div>
+            {/* Connection status indicator */}
+            {settings.gdrive_access_token ? (
+              <div className="mt-4 flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex size-3">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex size-3 rounded-full bg-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="font-sans text-sm font-medium text-emerald-400">Google Drive conectado</p>
+                    <p className="font-sans text-xs text-muted-foreground">Pronto para importar cursos do Drive</p>
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    await update("gdrive_access_token", "");
+                    await update("gdrive_refresh_token", "");
+                    toast.success("Conta do Google Drive desconectada");
+                  }}
+                  className="rounded-lg border border-border px-3 py-1.5 font-sans text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/30 hover:text-destructive"
+                >
+                  Desconectar
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex size-2.5 rounded-full bg-muted-foreground/30" />
+                  <span className="font-sans text-xs text-muted-foreground">Não conectado</span>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await invoke("start_google_drive_oauth");
+                      toast.success(res as string);
+                      // Reload settings to get the new tokens
+                      await reload();
+                    } catch (e) {
+                      toast.error(e as string);
+                    }
+                  }}
+                  disabled={!settings.gdrive_client_id || !settings.gdrive_client_secret}
+                  className={cn(
+                    "rounded-lg px-4 py-2 font-sans text-sm font-semibold transition-colors",
+                    settings.gdrive_client_id && settings.gdrive_client_secret
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "cursor-not-allowed bg-secondary text-muted-foreground/40"
+                  )}
+                >
+                  Conectar Conta do Google
+                </button>
+              </div>
+            )}
           </div>
         </SectionCard>
 
