@@ -221,11 +221,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     }
     if (lesson.videoPath.startsWith("gdrive://")) {
       const fileId = lesson.videoPath.replace("gdrive://", "");
-      invoke<string>("get_gdrive_video_url", { fileId }).then(url => {
-        setVideoSrc(url);
-      }).catch(err => {
-        console.error("Failed to get Google Drive video URL:", err);
-      });
+      setVideoSrc(convertFileSrc(fileId, "gdrive"));
     } else {
       setVideoSrc(convertFileSrc(lesson.videoPath, "stream"));
     }

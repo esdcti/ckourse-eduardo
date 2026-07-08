@@ -4,6 +4,7 @@ mod parser;
 mod portable;
 mod subtitle;
 mod video_protocol;
+mod gdrive_protocol;
 
 use db::DbState;
 use tauri::Manager;
@@ -16,6 +17,7 @@ pub struct AppDataDir(pub PathBuf);
 pub fn run() {
     tauri::Builder::default()
         .register_asynchronous_uri_scheme_protocol(video_protocol::SCHEME, video_protocol::handle)
+        .register_asynchronous_uri_scheme_protocol(gdrive_protocol::SCHEME, gdrive_protocol::handle)
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -90,7 +92,6 @@ pub fn run() {
             commands::download_youtube_playlist,
             commands::start_google_drive_oauth,
             commands::scan_google_drive,
-            commands::get_gdrive_video_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

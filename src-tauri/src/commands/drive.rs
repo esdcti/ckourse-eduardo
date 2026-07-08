@@ -119,7 +119,7 @@ struct DriveFileName {
     name: String,
 }
 
-async fn get_valid_token(state: &tauri::State<'_, DbState>) -> Result<String, String> {
+pub(crate) async fn get_valid_token(state: &tauri::State<'_, DbState>) -> Result<String, String> {
     let access_token = {
         let conn = state.conn.lock().map_err(|e| e.to_string())?;
         let settings = db::get_all_settings(&conn).map_err(|e| e.to_string())?;
@@ -128,7 +128,7 @@ async fn get_valid_token(state: &tauri::State<'_, DbState>) -> Result<String, St
     access_token.ok_or("Conta não conectada. Conecte o Google Drive nas configurações.".to_string())
 }
 
-async fn force_refresh_token(state: &tauri::State<'_, DbState>) -> Result<String, String> {
+pub(crate) async fn force_refresh_token(state: &tauri::State<'_, DbState>) -> Result<String, String> {
     let (refresh_token, client_id, client_secret) = {
         let conn = state.conn.lock().map_err(|e| e.to_string())?;
         let settings = db::get_all_settings(&conn).map_err(|e| e.to_string())?;
@@ -345,25 +345,3 @@ pub async fn scan_google_drive(
     })
 }
 
-#[tauri::command]
-pub async fn get_gdrive_video_url(
-    file_id: String,
-    state: tauri::State<'_, DbState>,
-) -> Result<String, String> {
-    let mut token = get_valid_token(&state).await?;
-    
-    let client = Client::new();
-    let url = format!("https://www.googleapis.com/drive/v3/files/{}?fields=id", file_id);
-    
-    let res = client.get(&url)
-        .header("Authorization", format!("Bearer {}", token))
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-
-    if res.status() == 401 {
-        token = force_refresh_token(&state).await?;
-    }
-
-    Ok(format!("https://www.googleapis.com/drive/v3/files/{}?alt=media&acknowledgeAbuse=true&access_token={}", file_id, token))
-}
