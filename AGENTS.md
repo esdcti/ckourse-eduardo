@@ -77,6 +77,7 @@ Este documento define as regras e convenções que agentes de IA devem seguir ao
 
 - **Proxy GDrive (`gdrive://`)**: Sempre que o app precisar reproduzir vídeos da nuvem, NÃO injete a URL externa diretamente no frontend (para evitar bloqueio anti-bot com muitas requisições Range). Use o protocolo `gdrive://`, que faz o backend Rust (`gdrive_protocol.rs`) atuar como proxy utilizando `reqwest`.
 - **OAuth offline**: O app processa callbacks localmente em `127.0.0.1:3456`. Não modifique esse comportamento sem repensar o fluxo de PWA/Mobile.
+- **Backup e Restore Nuvem**: Como o app usa o SQLite em modo WAL, todo backup/restore deve forçar um `PRAGMA wal_checkpoint(TRUNCATE)` ou usar a API nativa `rusqlite::backup::Backup` para evitar perda de dados recentes. Sempre crie um backup de segurança local antes de sobrescrever o banco de dados via restore da nuvem.
 
 ---
 

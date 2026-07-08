@@ -6,6 +6,16 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ---
 
+## [1.9.0] - 2026-07-08
+
+### Adicionado
+- **Backup Automático (Google Drive)**: Sistema de backup inteligente e invisível que sobe seu banco de dados para a nuvem a cada 15 minutos de forma assíncrona, garantindo a segurança dos dados sem travar a interface.
+- **Restauração Segura**: Refatoração completa da rotina de restauração. Agora o aplicativo realiza um *checkpoint* no cache WAL do banco de dados e cria um backup de segurança local (`ckourse_safety_backup.db`) automaticamente ANTES de qualquer restauração da nuvem.
+- **SQLite Backup API Nativa**: Troca da sobrescrita manual de arquivos do banco de dados (que causava corrupção de sessões e perda de tokens) para o uso da API oficial de Backup do SQLite embarcada na compilação do backend Rust.
+- Atualização sem necessidade de reinício: A restauração da nuvem aplica as mudanças dinamicamente sem exigir a reinicialização forçada do aplicativo.
+
+---
+
 ## [1.8.8] - 2026-07-08
 
 ### Corrigido
