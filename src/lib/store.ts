@@ -39,9 +39,9 @@ try {
   console.log("Could not register window close listener", e);
 }
 
-export function onSyncStateChange(listener: (syncing: boolean) => void) {
+export function onSyncStateChange(listener: (syncing: boolean) => void): () => void {
   syncListeners.add(listener);
-  return () => syncListeners.delete(listener);
+  return () => { syncListeners.delete(listener); };
 }
 
 function notifySync(state: boolean) {
