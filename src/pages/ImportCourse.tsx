@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { useNavigate } from "react-router-dom";
 import LottieLib from "lottie-react";
 
@@ -88,7 +89,7 @@ export function ImportCourse({ className }: ImportCourseProps) {
   const navigate = useNavigate();
   const t = useI18n();
   const [step, setStep] = useState<"select" | "configure">("select");
-  const [source, setSource] = useState<"folder" | "youtube">("folder");
+  const [source, setSource] = useState<"folder" | "youtube" | "gdrive">("folder");
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -96,6 +97,7 @@ export function ImportCourse({ className }: ImportCourseProps) {
   const [structureIds, setStructureIds] = useState<StructureIds>({ sections: [], lessons: [] });
   const [isImporting, setIsImporting] = useState(false);
   const [ytUrl, setYtUrl] = useState("");
+  const [gdriveUrl, setGdriveUrl] = useState("");
   const ytDownload = useYoutubeDownload();
 
   const [title, setTitle] = useState("");
@@ -114,6 +116,27 @@ export function ImportCourse({ className }: ImportCourseProps) {
 
     try {
       const result = await parseCourseFolder(folderPath);
+      setParsedCourse(result);
+      setStructureIds({
+        sections: result.sections.map(() => makeId()),
+        lessons: result.sections.map((s) => s.lessons.map(() => makeId())),
+      });
+      setTitle(result.title);
+      setStep("configure");
+    } catch (err) {
+      setParseError(typeof err === "string" ? err : t.parseError);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGdriveScan = async () => {
+    if (!gdriveUrl.trim()) return;
+    setIsLoading(true);
+    setParseError(null);
+
+    try {
+      const result = await invoke<ParsedCourse>("scan_google_drive", { folderUrl: gdriveUrl.trim() });
       setParsedCourse(result);
       setStructureIds({
         sections: result.sections.map(() => makeId()),
@@ -321,6 +344,20 @@ export function ImportCourse({ className }: ImportCourseProps) {
                 YouTube
               </span>
             </button>
+            <button
+              onClick={() => setSource("gdrive")}
+              className={cn(
+                "rounded-lg px-4 py-2 font-sans text-sm font-medium transition-colors",
+                source === "gdrive"
+                  ? "bg-primary/15 text-primary border border-primary/25"
+                  : "text-muted-foreground hover:text-foreground border border-border",
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <FolderOpen className="size-4" />
+                Google Drive
+              </span>
+            </button>
           </div>
 
           {source === "folder" ? (
@@ -336,7 +373,7 @@ export function ImportCourse({ className }: ImportCourseProps) {
           onDrop={handleDrop}
           onBrowse={handleFolderSelect}
             />
-          ) : (
+          ) : source === "youtube" ? (
             <div style={{ animation: `card-in 350ms ${EASE_OUT} 50ms both` }}>
               <div className="group relative">
                 <div className="squircle-subtle absolute inset-0 bg-border" />
@@ -406,6 +443,48 @@ export function ImportCourse({ className }: ImportCourseProps) {
                       Requer yt-dlp instalado no sistema
                     </p>
                   )}
+                </div>
+              </div>
+              {parseError && (
+                <div className="mt-4 flex items-center gap-2 rounded-lg bg-destructive/10 px-4 py-3">
+                  <Warning className="size-4 shrink-0 text-destructive" weight="bold" />
+                  <p className="font-sans text-sm text-destructive">{parseError}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ animation: `card-in 350ms ${EASE_OUT} 50ms both` }}>
+              <div className="group relative">
+                <div className="squircle-subtle absolute inset-0 bg-border" />
+                <div className="squircle-subtle absolute inset-px bg-card" />
+                <div className="relative flex flex-col items-center gap-4 px-6 py-12">
+                  <div className="flex size-16 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
+                    <FolderOpen className="size-7" />
+                  </div>
+                  <div className="w-full max-w-md">
+                    <label className="mb-2 block font-sans text-xs font-medium text-muted-foreground">
+                      Link da pasta do Google Drive
+                    </label>
+                    <input
+                      type="url"
+                      value={gdriveUrl}
+                      onChange={(e) => setGdriveUrl(e.target.value)}
+                      placeholder="https://drive.google.com/drive/folders/..."
+                      className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 font-sans text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                      onKeyDown={(e) => { if (e.key === "Enter") handleGdriveScan(); }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleGdriveScan}
+                    disabled={!gdriveUrl.trim() || isLoading}
+                    className={cn(
+                      "flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-primary-foreground transition-opacity",
+                      (!gdriveUrl.trim() || isLoading) ? "opacity-50 cursor-not-allowed" : "hover:opacity-90",
+                    )}
+                  >
+                    <UploadSimple className="size-4" weight="bold" />
+                    {isLoading ? "Escaneando..." : "Escanear Pasta"}
+                  </button>
                 </div>
               </div>
               {parseError && (

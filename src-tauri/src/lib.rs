@@ -89,6 +89,8 @@ pub fn run() {
             commands::check_ytdlp,
             commands::download_youtube_playlist,
             commands::start_google_drive_oauth,
+            commands::scan_google_drive,
+            commands::get_gdrive_video_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

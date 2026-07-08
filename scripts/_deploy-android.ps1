@@ -39,10 +39,10 @@ $devices = $adbOutput | Where-Object { $_ -match "`t(device|online)$" }
 
 if ($devices) {
     Write-Host "Dispositivo encontrado! Rodando tauri android dev..." -ForegroundColor Green
-    npm run tauri -- android dev
+    npm run tauri -- android dev --target aarch64
 } else {
-    Write-Host "Nenhum dispositivo USB. Gerando APK..." -ForegroundColor Yellow
-    npm run tauri -- android build --debug
+    Write-Host "Nenhum dispositivo USB. Gerando APK apenas para aarch64 (redução de tamanho)..." -ForegroundColor Yellow
+    npm run tauri -- android build --target aarch64 --debug
 
     # Localiza o APK gerado
     $apkSearch = Get-ChildItem -Path "src-tauri\gen\android\app\build\outputs\apk" -Recurse -Filter "*.apk" -ErrorAction SilentlyContinue |

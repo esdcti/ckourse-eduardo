@@ -7,7 +7,7 @@ import {
   forwardRef,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import {
   PlayIcon as Play,
   PauseIcon as Pause,
@@ -212,7 +212,24 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   const preferredSubLangRef = useRef<string | null>(null);
   const playbackSpeedRef = useRef(playbackSpeed);
 
-  const videoSrc = lesson ? convertFileSrc(lesson.videoPath, "stream") : undefined;
+  const [videoSrc, setVideoSrc] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!lesson) {
+      setVideoSrc(undefined);
+      return;
+    }
+    if (lesson.videoPath.startsWith("gdrive://")) {
+      const fileId = lesson.videoPath.replace("gdrive://", "");
+      invoke<string>("get_gdrive_video_url", { fileId }).then(url => {
+        setVideoSrc(url);
+      }).catch(err => {
+        console.error("Failed to get Google Drive video URL:", err);
+      });
+    } else {
+      setVideoSrc(convertFileSrc(lesson.videoPath, "stream"));
+    }
+  }, [lesson?.videoPath]);
 
   // Reset state when lesson changes
   useEffect(() => {

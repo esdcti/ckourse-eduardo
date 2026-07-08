@@ -5,7 +5,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::db::{self, DbState};
-
+use crate::parser::{ParsedCourse, ParsedSection, ParsedLesson, ParsedResource, ResourceType, Confidence};
 const REDIRECT_URI: &str = "http://127.0.0.1:3456";
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -97,4 +97,267 @@ pub async fn start_google_drive_oauth(
     }
 
     Err("Nenhum código de autorização recebido".to_string())
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct DriveFile {
+    id: String,
+    name: String,
+    #[serde(rename = "mimeType")]
+    mime_type: String,
+    size: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct DriveListResponse {
+    files: Vec<DriveFile>,
+}
+
+async fn get_valid_token(state: &tauri::State<'_, DbState>) -> Result<String, String> {
+    let access_token = {
+        let conn = state.conn.lock().map_err(|e| e.to_string())?;
+        let settings = db::get_all_settings(&conn).map_err(|e| e.to_string())?;
+        settings.into_iter().find(|(k, _)| k == "gdrive_access_token").map(|(_, v)| v)
+    };
+    access_token.ok_or("Conta não conectada. Conecte o Google Drive nas configurações.".to_string())
+}
+
+async fn force_refresh_token(state: &tauri::State<'_, DbState>) -> Result<String, String> {
+    let (refresh_token, client_id, client_secret) = {
+        let conn = state.conn.lock().map_err(|e| e.to_string())?;
+        let settings = db::get_all_settings(&conn).map_err(|e| e.to_string())?;
+        
+        let rt = settings.iter().find(|(k, _)| k == "gdrive_refresh_token").map(|(_, v)| v.clone()).ok_or("Refresh token ausente")?;
+        let cid = settings.iter().find(|(k, _)| k == "gdrive_client_id").map(|(_, v)| v.clone()).ok_or("Client ID ausente")?;
+        let sec = settings.iter().find(|(k, _)| k == "gdrive_client_secret").map(|(_, v)| v.clone()).ok_or("Client Secret ausente")?;
+        
+        (rt, cid, sec)
+    };
+
+    let client = Client::new();
+    let params = [
+        ("client_id", client_id.as_str()),
+        ("client_secret", client_secret.as_str()),
+        ("refresh_token", refresh_token.as_str()),
+        ("grant_type", "refresh_token"),
+    ];
+
+    let res = client.post("https://oauth2.googleapis.com/token")
+        .form(&params)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if res.status().is_success() {
+        let token_res: TokenResponse = res.json().await.map_err(|e| e.to_string())?;
+        let new_token = token_res.access_token;
+        
+        {
+            let conn = state.conn.lock().map_err(|e| e.to_string())?;
+            db::set_setting(&conn, "gdrive_access_token", &new_token).map_err(|e| e.to_string())?;
+        }
+        
+        Ok(new_token)
+    } else {
+        Err("Falha ao renovar token. Por favor, reconecte sua conta do Google Drive nas configurações.".to_string())
+    }
+}
+
+async fn fetch_folder(token: &str, folder_id: &str) -> Result<Vec<DriveFile>, String> {
+    let client = Client::new();
+    let url = format!(
+        "https://www.googleapis.com/drive/v3/files?q='{}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,size)&pageSize=1000&orderBy=name",
+        folder_id
+    );
+    let res = client.get(&url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    if res.status().is_success() {
+        let list: DriveListResponse = res.json().await.map_err(|e| e.to_string())?;
+        Ok(list.files)
+    } else if res.status() == 401 {
+        Err("401".to_string())
+    } else {
+        let err = res.text().await.unwrap_or_default();
+        Err(format!("Drive API Error: {}", err))
+    }
+}
+
+async fn fetch_folder_with_retry(state: &tauri::State<'_, DbState>, folder_id: &str) -> Result<Vec<DriveFile>, String> {
+    let mut token = get_valid_token(state).await?;
+    match fetch_folder(&token, folder_id).await {
+        Ok(files) => Ok(files),
+        Err(e) if e == "401" => {
+            token = force_refresh_token(state).await?;
+            fetch_folder(&token, folder_id).await.map_err(|e| if e == "401" { "Sessão expirada. Reconecte.".to_string() } else { e })
+        },
+        Err(e) => Err(e)
+    }
+}
+
+async fn get_folder_name(state: &tauri::State<'_, DbState>, folder_id: &str) -> Result<String, String> {
+    let mut token = get_valid_token(state).await?;
+    
+    let client = Client::new();
+    let url = format!("https://www.googleapis.com/drive/v3/files/{}?fields=name", folder_id);
+    
+    let mut res = client.get(&url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if res.status() == 401 {
+        token = force_refresh_token(state).await?;
+        res = client.get(&url)
+            .header("Authorization", format!("Bearer {}", token))
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+
+    if res.status().is_success() {
+        let file: DriveFile = res.json().await.map_err(|e| e.to_string())?;
+        Ok(file.name)
+    } else {
+        Err("Não foi possível acessar a pasta base. Verifique se o link está correto.".to_string())
+    }
+}
+
+fn extract_folder_id(url: &str) -> Option<String> {
+    if let Some(idx) = url.find("/folders/") {
+        let start = idx + 9;
+        let end = url[start..].find('?').map(|i| start + i).unwrap_or(url.len());
+        Some(url[start..end].to_string())
+    } else {
+        None
+    }
+}
+
+fn is_video(mime: &str, name: &str) -> bool {
+    mime.starts_with("video/") || name.ends_with(".mp4") || name.ends_with(".mkv") || name.ends_with(".webm") || name.ends_with(".avi") || name.ends_with(".ts")
+}
+
+#[tauri::command]
+pub async fn scan_google_drive(
+    folder_url: String,
+    state: tauri::State<'_, DbState>,
+) -> Result<ParsedCourse, String> {
+    let folder_id = extract_folder_id(&folder_url).ok_or("URL do Google Drive inválida. Deve conter /folders/ID")?;
+    
+    let course_title = get_folder_name(&state, &folder_id).await?;
+    let root_files = fetch_folder_with_retry(&state, &folder_id).await?;
+    
+    let mut sections = Vec::new();
+    let mut course_resources = Vec::new();
+    let mut total_video_count = 0;
+    
+    let mut root_lessons = Vec::new();
+    let mut order_counter = 1;
+    let mut subfolders = Vec::new();
+
+    for file in root_files {
+        if file.mime_type == "application/vnd.google-apps.folder" {
+            subfolders.push(file);
+        } else if is_video(&file.mime_type, &file.name) {
+            root_lessons.push(ParsedLesson {
+                title: file.name.replace(".mp4", "").replace(".mkv", ""),
+                order: order_counter,
+                video_path: format!("gdrive://{}", file.id),
+                duration_secs: 0,
+                subtitles: vec![],
+                resources: vec![],
+            });
+            order_counter += 1;
+            total_video_count += 1;
+        } else {
+            course_resources.push(ParsedResource {
+                title: file.name.clone(),
+                path: format!("gdrive://{}", file.id),
+                resource_type: ResourceType::Document,
+            });
+        }
+    }
+
+    if !root_lessons.is_empty() {
+        sections.push(ParsedSection {
+            title: "Módulo Principal".to_string(),
+            order: 1,
+            lessons: root_lessons,
+        });
+    }
+
+    let mut section_order = if sections.is_empty() { 1 } else { 2 };
+
+    for folder in subfolders {
+        let items = fetch_folder_with_retry(&state, &folder.id).await?;
+        let mut lessons = Vec::new();
+        let mut lesson_order = 1;
+        
+        for item in items {
+            if is_video(&item.mime_type, &item.name) {
+                lessons.push(ParsedLesson {
+                    title: item.name.replace(".mp4", "").replace(".mkv", ""),
+                    order: lesson_order,
+                    video_path: format!("gdrive://{}", item.id),
+                    duration_secs: 0,
+                    subtitles: vec![],
+                    resources: vec![],
+                });
+                lesson_order += 1;
+                total_video_count += 1;
+            }
+        }
+        
+        if !lessons.is_empty() {
+            sections.push(ParsedSection {
+                title: folder.name,
+                order: section_order,
+                lessons,
+            });
+            section_order += 1;
+        }
+    }
+
+    if sections.is_empty() {
+        return Err("Nenhum vídeo encontrado nesta pasta ou subpastas.".to_string());
+    }
+
+    Ok(ParsedCourse {
+        title: course_title,
+        description: None,
+        thumbnail_path: None,
+        sections,
+        resources: course_resources,
+        confidence: Confidence::High,
+        confidence_reasons: vec!["Google Drive parsing".to_string()],
+        total_video_count,
+        folder_path: folder_url,
+    })
+}
+
+#[tauri::command]
+pub async fn get_gdrive_video_url(
+    file_id: String,
+    state: tauri::State<'_, DbState>,
+) -> Result<String, String> {
+    let mut token = get_valid_token(&state).await?;
+    
+    let client = Client::new();
+    let url = format!("https://www.googleapis.com/drive/v3/files/{}?fields=id", file_id);
+    
+    let mut res = client.get(&url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if res.status() == 401 {
+        token = force_refresh_token(&state).await?;
+    }
+
+    Ok(format!("https://www.googleapis.com/drive/v3/files/{}?alt=media&access_token={}", file_id, token))
 }
