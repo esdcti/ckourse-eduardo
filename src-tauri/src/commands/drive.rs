@@ -365,5 +365,5 @@ pub async fn get_gdrive_video_url(
         token = force_refresh_token(&state).await?;
     }
 
-    Ok(format!("https://www.googleapis.com/drive/v3/files/{}?alt=media&access_token={}", file_id, token))
+    Ok(format!("https://www.googleapis.com/drive/v3/files/{}?alt=media&acknowledgeAbuse=true&access_token={}", file_id, token))
 }
