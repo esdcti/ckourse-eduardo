@@ -368,7 +368,7 @@ pub async fn backup_database_to_drive(
     // Force WAL checkpoint so all data is written to the .db file
     {
         let _conn = state.conn.lock().map_err(|e| e.to_string())?;
-        _conn.execute("PRAGMA wal_checkpoint(TRUNCATE)", []).map_err(|e| format!("Erro ao sincronizar banco: {}", e))?;
+        _conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);").map_err(|e| format!("Erro ao sincronizar banco: {}", e))?;
     }
 
     let file_bytes = tokio::fs::read(&db_path).await.map_err(|e| format!("Erro ao ler banco local: {}", e))?;
@@ -489,7 +489,7 @@ pub async fn restore_database_from_drive(
     // SAFETY BACKUP: Ensure WAL is flushed and make a copy of the current database before overwriting it
     {
         if let Ok(mut _conn) = state.conn.lock() {
-            let _ = _conn.execute("PRAGMA wal_checkpoint(TRUNCATE)", []);
+            let _ = _conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);");
         }
     }
     let safety_backup_path = portable_state.data_dir.join("ckourse_safety_backup.db");
