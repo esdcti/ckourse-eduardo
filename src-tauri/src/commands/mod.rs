@@ -1,10 +1,10 @@
-mod courses;
-mod lessons;
-mod notes;
-mod portable;
-mod settings;
-mod youtube;
-mod drive;
+pub mod courses;
+pub mod lessons;
+pub mod notes;
+pub mod portable;
+pub mod settings;
+pub mod youtube;
+pub mod drive;
 
 pub use courses::*;
 pub use lessons::*;

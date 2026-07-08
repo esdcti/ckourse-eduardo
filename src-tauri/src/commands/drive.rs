@@ -345,3 +345,145 @@ pub async fn scan_google_drive(
     })
 }
 
+#[derive(Deserialize)]
+struct AppDataFile {
+    id: String,
+}
+
+#[derive(Deserialize)]
+struct AppDataList {
+    files: Vec<AppDataFile>,
+}
+
+#[tauri::command]
+pub async fn backup_database_to_drive(
+    app_handle: tauri::AppHandle,
+    state: tauri::State<'_, DbState>,
+) -> Result<String, String> {
+    let mut token = get_valid_token(&state).await?;
+    let client = Client::new();
+
+    let portable_info = crate::portable::get_portable_info(&app_handle);
+    let db_path = portable_info.data_dir.join("ckourse.db");
+
+    let file_bytes = tokio::fs::read(&db_path).await.map_err(|e| format!("Erro ao ler banco local: {}", e))?;
+
+    let search_url = "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='ckourse.db'";
+    let mut search_res = client.get(search_url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send().await.map_err(|e| e.to_string())?;
+
+    if search_res.status() == 401 {
+        token = force_refresh_token(&state).await?;
+        search_res = client.get(search_url)
+            .header("Authorization", format!("Bearer {}", token))
+            .send().await.map_err(|e| e.to_string())?;
+    }
+
+    if !search_res.status().is_success() {
+        return Err(format!("Erro ao buscar backup: {}", search_res.text().await.unwrap_or_default()));
+    }
+    
+    let search_data: AppDataList = search_res.json().await.map_err(|e| e.to_string())?;
+    let existing_file_id = search_data.files.first().map(|f| f.id.clone());
+
+    if let Some(file_id) = existing_file_id {
+        let upload_url = format!("https://www.googleapis.com/upload/drive/v3/files/{}?uploadType=media", file_id);
+        let res = client.patch(&upload_url)
+            .header("Authorization", format!("Bearer {}", token))
+            .header("Content-Type", "application/octet-stream")
+            .body(file_bytes)
+            .send().await.map_err(|e| e.to_string())?;
+        
+        if res.status().is_success() {
+            Ok("Backup atualizado com sucesso!".to_string())
+        } else {
+            Err(format!("Erro ao atualizar backup: {}", res.text().await.unwrap_or_default()))
+        }
+    } else {
+        let metadata_url = "https://www.googleapis.com/drive/v3/files";
+        let metadata_res = client.post(metadata_url)
+            .header("Authorization", format!("Bearer {}", token))
+            .json(&serde_json::json!({
+                "name": "ckourse.db",
+                "parents": ["appDataFolder"]
+            }))
+            .send().await.map_err(|e| e.to_string())?;
+
+        if !metadata_res.status().is_success() {
+            return Err(format!("Erro ao criar metadados do backup: {}", metadata_res.text().await.unwrap_or_default()));
+        }
+
+        let metadata_data: AppDataFile = metadata_res.json().await.map_err(|e| e.to_string())?;
+        
+        let upload_url = format!("https://www.googleapis.com/upload/drive/v3/files/{}?uploadType=media", metadata_data.id);
+        let res = client.patch(&upload_url)
+            .header("Authorization", format!("Bearer {}", token))
+            .header("Content-Type", "application/octet-stream")
+            .body(file_bytes)
+            .send().await.map_err(|e| e.to_string())?;
+        
+        if res.status().is_success() {
+            Ok("Backup criado com sucesso!".to_string())
+        } else {
+            Err(format!("Erro ao fazer upload do backup: {}", res.text().await.unwrap_or_default()))
+        }
+    }
+}
+
+#[tauri::command]
+pub async fn restore_database_from_drive(
+    app_handle: tauri::AppHandle,
+    state: tauri::State<'_, DbState>,
+) -> Result<String, String> {
+    let mut token = get_valid_token(&state).await?;
+    let client = Client::new();
+
+    let search_url = "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='ckourse.db'";
+    let mut search_res = client.get(search_url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send().await.map_err(|e| e.to_string())?;
+
+    if search_res.status() == 401 {
+        token = force_refresh_token(&state).await?;
+        search_res = client.get(search_url)
+            .header("Authorization", format!("Bearer {}", token))
+            .send().await.map_err(|e| e.to_string())?;
+    }
+
+    if !search_res.status().is_success() {
+        return Err(format!("Erro ao buscar backup: {}", search_res.text().await.unwrap_or_default()));
+    }
+    
+    let search_data: AppDataList = search_res.json().await.map_err(|e| e.to_string())?;
+    let existing_file_id = match search_data.files.first() {
+        Some(f) => f.id.clone(),
+        None => return Err("Nenhum backup encontrado na nuvem.".to_string()),
+    };
+
+    let download_url = format!("https://www.googleapis.com/drive/v3/files/{}?alt=media", existing_file_id);
+    let mut download_res = client.get(&download_url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send().await.map_err(|e| e.to_string())?;
+
+    if download_res.status() == 401 {
+        token = force_refresh_token(&state).await?;
+        download_res = client.get(&download_url)
+            .header("Authorization", format!("Bearer {}", token))
+            .send().await.map_err(|e| e.to_string())?;
+    }
+
+    if !download_res.status().is_success() {
+        return Err(format!("Erro ao fazer download do backup: {}", download_res.text().await.unwrap_or_default()));
+    }
+
+    let bytes = download_res.bytes().await.map_err(|e| e.to_string())?;
+
+    let portable_info = crate::portable::get_portable_info(&app_handle);
+    let db_path = portable_info.data_dir.join("ckourse.db");
+
+    let _conn = state.conn.lock().map_err(|e| e.to_string())?;
+    tokio::fs::write(&db_path, bytes).await.map_err(|e| format!("Erro ao salvar banco local: {}", e))?;
+
+    Ok("Backup restaurado com sucesso! Reinicie o aplicativo.".to_string())
+}
