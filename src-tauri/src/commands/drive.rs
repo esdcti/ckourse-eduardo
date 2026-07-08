@@ -488,9 +488,9 @@ pub async fn restore_database_from_drive(
     std::fs::write(&temp_db_path, bytes).map_err(|e| format!("Erro ao salvar banco baixado: {}", e))?;
 
     {
-        let _conn = state.conn.lock().map_err(|e| e.to_string())?;
+        let mut _conn = state.conn.lock().map_err(|e| e.to_string())?;
         let src_conn = rusqlite::Connection::open(&temp_db_path).map_err(|e| format!("Erro ao abrir banco baixado: {}", e))?;
-        let mut backup = rusqlite::backup::Backup::new(&_conn, "main", &src_conn, "main").map_err(|e| e.to_string())?;
+        let mut backup = rusqlite::backup::Backup::new(&src_conn, &mut *_conn).map_err(|e| e.to_string())?;
         backup.step(-1).map_err(|e| e.to_string())?;
     }
 
