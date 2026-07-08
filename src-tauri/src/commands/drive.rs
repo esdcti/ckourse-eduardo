@@ -49,11 +49,11 @@ pub async fn start_google_drive_oauth(
         if stream.read(&mut buffer).await.is_ok() {
             let request = String::from_utf8_lossy(&buffer[..]);
             if let Some(line) = request.lines().next() {
-                if line.starts_with("GET /?code=") {
-                    let code_start = line.find("code=").unwrap() + 5;
-                    let code_end = line[code_start..].find(" ").unwrap_or(line.len() - code_start);
-                    let code = &line[code_start..code_start + code_end];
-                    let code = code.split('&').next().unwrap_or(code);
+                if line.starts_with("GET /") {
+                    if let Some(code_pos) = line.find("code=") {
+                        let code_start = code_pos + 5;
+                        let code_end = line[code_start..].find(|c: char| c == '&' || c == ' ').unwrap_or(line.len() - code_start);
+                        let code = &line[code_start..code_start + code_end];
 
                     let client = Client::new();
                     let params = [
@@ -90,6 +90,7 @@ pub async fn start_google_drive_oauth(
                         let response = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<html><body><h1>Erro de Autenticação</h1></body></html>";
                         let _ = stream.write_all(response.as_bytes()).await;
                         return Err(format!("Erro da API do Google: {}", err_text));
+                    }
                     }
                 }
             }
@@ -349,7 +350,7 @@ pub async fn get_gdrive_video_url(
     let client = Client::new();
     let url = format!("https://www.googleapis.com/drive/v3/files/{}?fields=id", file_id);
     
-    let mut res = client.get(&url)
+    let res = client.get(&url)
         .header("Authorization", format!("Bearer {}", token))
         .send()
         .await
