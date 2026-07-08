@@ -219,7 +219,7 @@ export function Dashboard({ className }: DashboardProps) {
     <div className={cn("mx-auto max-w-6xl", className)}>
       {stats && <DashboardStatsBar stats={stats} className="mb-6" />}
 
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
         <SquircleSearch
           value={search}
           onChange={setSearch}
@@ -227,25 +227,28 @@ export function Dashboard({ className }: DashboardProps) {
           className="flex-1"
         />
 
-        <SquircleButton
-          variant="secondary"
-          active={showFilters}
-          onClick={() => setShowFilters((v) => !v)}
-        >
-          <Funnel
-            className="size-4"
-            style={{
-              transform: showFilters ? "rotate(180deg)" : "rotate(0deg)",
-              transition: `transform 500ms ${EASE}`,
-            }}
-          />
-          {t.filters}
-        </SquircleButton>
+        <div className="flex items-center gap-3">
+          <SquircleButton
+            variant="secondary"
+            active={showFilters}
+            onClick={() => setShowFilters((v) => !v)}
+            className="flex-1 sm:flex-none justify-center"
+          >
+            <Funnel
+              className="size-4 shrink-0"
+              style={{
+                transform: showFilters ? "rotate(180deg)" : "rotate(0deg)",
+                transition: `transform 500ms ${EASE}`,
+              }}
+            />
+            {t.filters}
+          </SquircleButton>
 
-        <SquircleButton variant="primary" onClick={() => navigate("/import")}>
-          <Plus className="size-4" weight="bold" />
-          {t.importCourse}
-        </SquircleButton>
+          <SquircleButton variant="primary" onClick={() => navigate("/import")} className="flex-1 sm:flex-none justify-center">
+            <Plus className="size-4 shrink-0" weight="bold" />
+            {t.importCourse}
+          </SquircleButton>
+        </div>
       </div>
 
       <div

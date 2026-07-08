@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   SquareHalfIcon as SquareHalf,
   CornersOutIcon as CornersOut,
@@ -39,6 +39,7 @@ function AppShellInner({ children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const location = useLocation();
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -187,7 +188,7 @@ function AppShellInner({ children }: AppShellProps) {
 
       <div className="flex min-h-0 flex-1">
         <aside
-          className="flex shrink-0 flex-col will-change-[width]"
+          className="hidden shrink-0 flex-col will-change-[width] md:flex"
           style={{
             width: effectiveCollapsed ? 68 : 240,
             transition: `width ${spring()}`,
@@ -231,7 +232,7 @@ function AppShellInner({ children }: AppShellProps) {
         </aside>
 
         <main
-          className="flex-1 overflow-y-auto rounded-tl-2xl bg-background px-6 py-8 [scrollbar-gutter:stable]"
+          className="flex-1 overflow-y-auto rounded-tl-2xl bg-background px-4 py-6 md:px-6 md:py-8 [scrollbar-gutter:stable]"
           style={{
             backgroundImage:
               "radial-gradient(ellipse 80% 60% at 10% 0%, var(--gradient-spot) 0%, transparent 70%)",
@@ -240,6 +241,29 @@ function AppShellInner({ children }: AppShellProps) {
           {children}
         </main>
       </div>
+
+      {/* Bottom Navigation for Mobile */}
+      <nav className="flex h-16 shrink-0 items-center justify-around border-t border-sidebar-border/30 bg-sidebar md:hidden">
+        {[...navigationItems, ...appItems].map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 w-16 h-full transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Icon className="size-5" weight={isActive ? "fill" : "regular"} />
+              <span className="font-sans text-[10px] font-medium leading-none">
+                {item.i18nKey ? t[item.i18nKey as keyof typeof t] : item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

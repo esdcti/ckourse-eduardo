@@ -35,7 +35,6 @@ import { useSettings } from "@/hooks/useSettings";
 import { useCourseTitles } from "@/components/app-shell/CourseTitleContext";
 import { useI18n, type Translations } from "@/lib/i18n";
 import {
-  getCourse,
   getCourseDetail,
   getCourseNotes,
   getLessonSubtitles,
@@ -98,6 +97,15 @@ export function CourseDetail({ className }: CourseDetailProps) {
   const { courseId } = useParams<{ courseId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1024px)");
+    const onChange = (e: MediaQueryListEvent | MediaQueryList) => setIsSmallScreen(e.matches);
+    onChange(mq);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
   const numericId = Number(courseId);
   const isValidId = courseId != null && !isNaN(numericId) && numericId > 0;
   const lessonParam = searchParams.get("lesson");
@@ -832,16 +840,16 @@ function CourseDetailInner({
         </div>
 
         <div
-          className="lg:shrink-0 overflow-clip self-start sticky top-4"
+          className="lg:shrink-0 overflow-clip lg:self-start lg:sticky lg:top-4 mt-6 lg:mt-0"
           style={{
-            width: curriculumOpen && !focusMode ? 320 : 0,
+            width: curriculumOpen && !focusMode ? (isSmallScreen ? "100%" : 320) : 0,
             opacity: mounted ? 1 : 0,
             transform: mounted ? "translateY(0)" : "translateY(12px)",
             transition: `width 400ms ${SNAPPY}, opacity 600ms ${EASE_OUT} 160ms, transform 600ms ${EASE_OUT} 160ms`,
           }}
         >
           <div
-            className="flex h-[85vh] w-80 flex-col overflow-hidden rounded-xl border border-border bg-card"
+            className="flex h-[500px] lg:h-[85vh] w-full lg:w-80 flex-col overflow-hidden rounded-xl border border-border bg-card"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h2 className="font-heading text-sm font-bold text-foreground">
