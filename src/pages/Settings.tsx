@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import type { LibraryStats } from "@/types";
 import { getLibraryStats, deleteAllData, getPortableInfo, setCustomDataDir } from "@/lib/store";
 import { open } from "@tauri-apps/plugin-dialog";
-import { open as openUrl } from "@tauri-apps/plugin-opener";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { EASE_OUT } from "@/lib/constants";
 import { useUpdater } from "@/hooks/useUpdater";
 import { getVersion } from "@tauri-apps/api/app";
