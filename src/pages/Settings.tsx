@@ -676,13 +676,13 @@ export function Settings({ className }: SettingsProps) {
         >
           <div className="px-3 py-2">
             <p className="mb-4 font-sans text-xs text-muted-foreground">
-              Configure suas credenciais da API do Google Drive (Client ID e Client Secret) para permitir o streaming de cursos diretamente da nuvem sem ocupar espaço no seu dispositivo.
+              Conecte sua conta do Google Drive para permitir o streaming de cursos e sincronização de progresso. Você pode usar as credenciais padrão do Ckourse ou configurar suas próprias chaves (opcional).
             </p>
             
             <SettingRow
               icon={<Cloud className="size-4" />}
-              label="Client ID (Google Cloud)"
-              description="ID do Cliente OAuth 2.0"
+              label="Client ID (Opcional)"
+              description="Deixe em branco para usar o padrão"
             >
               <input
                 type="text"
@@ -695,8 +695,8 @@ export function Settings({ className }: SettingsProps) {
 
             <SettingRow
               icon={<Cloud className="size-4" />}
-              label="Client Secret"
-              description="Segredo do Cliente OAuth"
+              label="Client Secret (Opcional)"
+              description="Deixe em branco para usar o padrão"
             >
               <input
                 type="password"
@@ -776,12 +776,10 @@ export function Settings({ className }: SettingsProps) {
                       toast.error(e as string);
                     }
                   }}
-                  disabled={!settings.gdrive_client_id || !settings.gdrive_client_secret}
+                  disabled={false}
                   className={cn(
                     "rounded-lg px-4 py-2 font-sans text-sm font-semibold transition-colors",
-                    settings.gdrive_client_id && settings.gdrive_client_secret
-                      ? "bg-blue-600 text-white hover:bg-blue-700"
-                      : "cursor-not-allowed bg-secondary text-muted-foreground/40"
+                    "bg-blue-600 text-white hover:bg-blue-700"
                   )}
                 >
                   Conectar Conta do Google

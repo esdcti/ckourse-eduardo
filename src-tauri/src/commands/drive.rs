@@ -8,6 +8,8 @@ use crate::db::{self, DbState};
 use crate::parser::{ParsedCourse, ParsedSection, ParsedLesson, ParsedResource, ResourceType, Confidence};
 const REDIRECT_URI: &str = "http://127.0.0.1:3456";
 
+const DEFAULT_CLIENT_ID: &str = "873301581649-s748k7pv47orvlpl07djm5kiu8gjkqca.apps.googleusercontent.com";
+const DEFAULT_CLIENT_SECRET: &str = "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";
 #[derive(Serialize, Deserialize, Debug)]
 struct TokenResponse {
     access_token: String,
@@ -24,14 +26,10 @@ pub async fn start_google_drive_oauth(
         let conn = state.conn.lock().map_err(|e| e.to_string())?;
         let settings = db::get_all_settings(&conn).map_err(|e| e.to_string())?;
         
-        let cid = settings.iter().find(|(k, _)| k == "gdrive_client_id").map(|(_, v)| v.clone()).ok_or("Client ID não configurado nas Configurações.")?;
-        let sec = settings.iter().find(|(k, _)| k == "gdrive_client_secret").map(|(_, v)| v.clone()).ok_or("Client Secret não configurado nas Configurações.")?;
+        let cid = settings.iter().find(|(k, _)| k == "gdrive_client_id").map(|(_, v)| v.clone()).filter(|v| !v.trim().is_empty()).unwrap_or_else(|| DEFAULT_CLIENT_ID.to_string());
+        let sec = settings.iter().find(|(k, _)| k == "gdrive_client_secret").map(|(_, v)| v.clone()).filter(|v| !v.trim().is_empty()).unwrap_or_else(|| DEFAULT_CLIENT_SECRET.to_string());
         (cid, sec)
     };
-
-    if client_id.trim().is_empty() || client_secret.trim().is_empty() {
-        return Err("Preencha o Client ID e o Client Secret nas configurações do aplicativo primeiro.".to_string());
-    }
 
     let auth_url = format!(
         "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly%20https://www.googleapis.com/auth/drive.appdata&access_type=offline&prompt=consent",
@@ -134,8 +132,8 @@ pub(crate) async fn force_refresh_token(state: &tauri::State<'_, DbState>) -> Re
         let settings = db::get_all_settings(&conn).map_err(|e| e.to_string())?;
         
         let rt = settings.iter().find(|(k, _)| k == "gdrive_refresh_token").map(|(_, v)| v.clone()).ok_or("Refresh token ausente")?;
-        let cid = settings.iter().find(|(k, _)| k == "gdrive_client_id").map(|(_, v)| v.clone()).ok_or("Client ID ausente")?;
-        let sec = settings.iter().find(|(k, _)| k == "gdrive_client_secret").map(|(_, v)| v.clone()).ok_or("Client Secret ausente")?;
+        let cid = settings.iter().find(|(k, _)| k == "gdrive_client_id").map(|(_, v)| v.clone()).filter(|v| !v.trim().is_empty()).unwrap_or_else(|| DEFAULT_CLIENT_ID.to_string());
+        let sec = settings.iter().find(|(k, _)| k == "gdrive_client_secret").map(|(_, v)| v.clone()).filter(|v| !v.trim().is_empty()).unwrap_or_else(|| DEFAULT_CLIENT_SECRET.to_string());
         
         (rt, cid, sec)
     };
