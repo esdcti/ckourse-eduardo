@@ -104,18 +104,44 @@ function KeepAliveRoutes() {
 
 import { invoke } from "@tauri-apps/api/core";
 
-function AutoBackup() {
-  useEffect(() => {
-    const interval = setInterval(() => {
-      invoke("backup_database_to_drive").catch(() => {
-        // Silently fail if not connected or error occurs
-      });
-    }, 15 * 60 * 1000); // 15 minutes
-    return () => clearInterval(interval);
-  }, []);
-  return null;
-}
+import { onSyncStateChange } from "@/lib/store";
 
+function StartupSync() {
+  const [syncing, setSyncing] = useState(false);
+
+  useEffect(() => {
+    return onSyncStateChange(setSyncing);
+  }, []);
+
+  useEffect(() => {
+    async function check() {
+      try {
+        setSyncing(true);
+        const status = await invoke<{needs_sync: boolean, drive_modified_time: string | null}>("check_drive_sync_status");
+        if (status.needs_sync) {
+          // Download and merge
+          await invoke("restore_database_from_drive");
+          // Upload merged state back
+          await invoke("backup_database_to_drive");
+        }
+      } catch (e) {
+        console.log("Startup sync skipped or failed:", e);
+      } finally {
+        setSyncing(false);
+      }
+    }
+    check();
+  }, []);
+
+  if (!syncing) return null;
+  
+  return (
+    <div className="fixed top-4 right-4 bg-zinc-800/80 text-white px-3 py-1.5 rounded-full text-xs font-medium z-[9999] flex items-center gap-2 backdrop-blur-md shadow-lg border border-zinc-700/50">
+      <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+      Sincronizando nuvem...
+    </div>
+  );
+}
 function App() {
   const settingsCtx = useSettingsProvider();
   const updaterCtx = useUpdaterProvider();
@@ -129,7 +155,7 @@ function App() {
       <I18nContext.Provider value={t}>
         <UpdaterContext.Provider value={updaterCtx}>
           <YoutubeDownloadContext.Provider value={ytCtx}>
-            <AutoBackup />
+            <StartupSync />
             <AppShell>
               <KeepAliveRoutes />
             </AppShell>

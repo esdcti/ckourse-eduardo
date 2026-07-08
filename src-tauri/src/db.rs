@@ -171,7 +171,8 @@ pub fn init_db(app_data_dir: &Path) -> SqlResult<Connection> {
             completed INTEGER NOT NULL DEFAULT 0,
             is_last_watched INTEGER NOT NULL DEFAULT 0,
             duration INTEGER NOT NULL DEFAULT 0,
-            last_position REAL NOT NULL DEFAULT 0
+            last_position REAL NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL DEFAULT ''
         );
 
         CREATE TABLE IF NOT EXISTS subtitles (
@@ -240,6 +241,10 @@ pub fn init_db(app_data_dir: &Path) -> SqlResult<Connection> {
     // Migrations for existing databases
     let _ = conn.execute_batch(
         "ALTER TABLE lessons ADD COLUMN last_position REAL NOT NULL DEFAULT 0;",
+    );
+
+    let _ = conn.execute_batch(
+        "ALTER TABLE lessons ADD COLUMN updated_at TEXT NOT NULL DEFAULT '';",
     );
 
     // Bookmarks table migration for existing databases
@@ -570,8 +575,8 @@ pub fn toggle_lesson_completed(conn: &Connection, lesson_id: i64) -> SqlResult<b
 
     let new_val = if current == 0 { 1 } else { 0 };
     conn.execute(
-        "UPDATE lessons SET completed = ?1 WHERE id = ?2",
-        params![new_val, lesson_id],
+        "UPDATE lessons SET completed = ?1, updated_at = ?3 WHERE id = ?2",
+        params![new_val, lesson_id, chrono_now()],
     )?;
 
     // Update course updated_at
@@ -590,14 +595,14 @@ pub fn toggle_lesson_completed(conn: &Connection, lesson_id: i64) -> SqlResult<b
 pub fn set_last_watched(conn: &Connection, course_id: i64, lesson_id: i64) -> SqlResult<()> {
     // Clear all is_last_watched for this course
     conn.execute(
-        "UPDATE lessons SET is_last_watched = 0 WHERE section_id IN (SELECT id FROM sections WHERE course_id = ?1)",
-        params![course_id],
+        "UPDATE lessons SET is_last_watched = 0, updated_at = ?2 WHERE section_id IN (SELECT id FROM sections WHERE course_id = ?1)",
+        params![course_id, chrono_now()],
     )?;
 
     // Set the new one
     conn.execute(
-        "UPDATE lessons SET is_last_watched = 1 WHERE id = ?1",
-        params![lesson_id],
+        "UPDATE lessons SET is_last_watched = 1, updated_at = ?2 WHERE id = ?1",
+        params![lesson_id, chrono_now()],
     )?;
 
     let now = chrono_now();
@@ -629,9 +634,9 @@ pub fn update_course(
 
 pub fn reset_course_progress(conn: &Connection, course_id: i64) -> SqlResult<()> {
     conn.execute(
-        "UPDATE lessons SET completed = 0, is_last_watched = 0
+        "UPDATE lessons SET completed = 0, is_last_watched = 0, updated_at = ?2
          WHERE section_id IN (SELECT id FROM sections WHERE course_id = ?1)",
-        params![course_id],
+        params![course_id, chrono_now()],
     )?;
     conn.execute(
         "UPDATE courses SET last_watched = NULL, updated_at = ?1 WHERE id = ?2",
@@ -740,16 +745,16 @@ pub fn delete_note(conn: &Connection, note_id: i64) -> SqlResult<()> {
 
 pub fn save_lesson_position(conn: &Connection, lesson_id: i64, position: f64) -> SqlResult<()> {
     conn.execute(
-        "UPDATE lessons SET last_position = ?1 WHERE id = ?2",
-        params![position, lesson_id],
+        "UPDATE lessons SET last_position = ?1, updated_at = ?3 WHERE id = ?2",
+        params![position, lesson_id, chrono_now()],
     )?;
     Ok(())
 }
 
 pub fn update_lesson_duration(conn: &Connection, lesson_id: i64, duration: i64) -> SqlResult<()> {
     conn.execute(
-        "UPDATE lessons SET duration = ?1 WHERE id = ?2 AND duration != ?1",
-        params![duration, lesson_id],
+        "UPDATE lessons SET duration = ?1, updated_at = ?3 WHERE id = ?2 AND duration != ?1",
+        params![duration, lesson_id, chrono_now()],
     )?;
     Ok(())
 }

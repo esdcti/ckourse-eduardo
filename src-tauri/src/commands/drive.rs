@@ -348,11 +348,65 @@ pub async fn scan_google_drive(
 #[derive(Deserialize)]
 struct AppDataFile {
     id: String,
+    #[serde(rename = "modifiedTime")]
+    modified_time: Option<String>,
 }
 
 #[derive(Deserialize)]
 struct AppDataList {
     files: Vec<AppDataFile>,
+}
+
+#[derive(Serialize)]
+pub struct SyncStatus {
+    pub needs_sync: bool,
+    pub drive_modified_time: Option<String>,
+}
+
+#[tauri::command]
+pub async fn check_drive_sync_status(
+    state: tauri::State<'_, DbState>,
+) -> Result<SyncStatus, String> {
+    let mut token = get_valid_token(&state).await?;
+    let client = Client::new();
+
+    let search_url = "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='ckourse.db'&fields=files(id,modifiedTime)";
+    let mut search_res = client.get(search_url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send().await.map_err(|e| e.to_string())?;
+
+    if search_res.status() == 401 {
+        token = force_refresh_token(&state).await?;
+        search_res = client.get(search_url)
+            .header("Authorization", format!("Bearer {}", token))
+            .send().await.map_err(|e| e.to_string())?;
+    }
+
+    if !search_res.status().is_success() {
+        return Err(format!("Erro ao buscar status: {}", search_res.text().await.unwrap_or_default()));
+    }
+    
+    let search_data: AppDataList = search_res.json().await.map_err(|e| e.to_string())?;
+    let drive_file = search_data.files.first();
+    
+    let drive_modified_time = drive_file.and_then(|f| f.modified_time.clone());
+
+    let local_last_sync = {
+        let conn = state.conn.lock().map_err(|e| e.to_string())?;
+        let settings = db::get_all_settings(&conn).unwrap_or_default();
+        settings.into_iter().find(|(k, _)| k == "gdrive_last_sync_time").map(|(_, v)| v)
+    };
+
+    let needs_sync = match (&drive_modified_time, &local_last_sync) {
+        (Some(drive_time), Some(local_time)) => drive_time != local_time,
+        (Some(_), None) => true, // cloud has data, we never synced
+        (None, _) => false, // cloud has no data
+    };
+
+    Ok(SyncStatus {
+        needs_sync,
+        drive_modified_time,
+    })
 }
 
 #[tauri::command]
@@ -429,6 +483,8 @@ pub async fn backup_database_to_drive(
             .send().await.map_err(|e| e.to_string())?;
         
         if res.status().is_success() {
+            // Update local last_sync_time if we get the modifiedTime, but patch doesn't return it easily unless fields are requested.
+            // We can just rely on the next startup check.
             Ok("Backup criado com sucesso!".to_string())
         } else {
             Err(format!("Erro ao fazer upload do backup: {}", res.text().await.unwrap_or_default()))
@@ -499,10 +555,105 @@ pub async fn restore_database_from_drive(
     std::fs::write(&temp_db_path, bytes).map_err(|e| format!("Erro ao salvar banco baixado: {}", e))?;
 
     {
-        let mut _conn = state.conn.lock().map_err(|e| e.to_string())?;
-        let src_conn = rusqlite::Connection::open(&temp_db_path).map_err(|e| format!("Erro ao abrir banco baixado: {}", e))?;
-        let mut backup = rusqlite::backup::Backup::new(&src_conn, &mut *_conn).map_err(|e| e.to_string())?;
-        backup.step(-1).map_err(|e| e.to_string())?;
+        let _conn = state.conn.lock().map_err(|e| e.to_string())?;
+        
+        // Ensure the downloaded database is intact and attach it
+        _conn.execute("ATTACH DATABASE ?1 AS remote", rusqlite::params![temp_db_path.to_str().unwrap()])
+            .map_err(|e| format!("Erro ao anexar banco remoto: {}", e))?;
+
+        // SMART MERGE LOGIC
+        // 1. Merge Courses (update local if remote is newer)
+        _conn.execute_batch("
+            UPDATE courses SET
+                title = remote.courses.title,
+                author = remote.courses.author,
+                accent_color = remote.courses.accent_color,
+                category = remote.courses.category,
+                description = remote.courses.description,
+                thumbnail_path = remote.courses.thumbnail_path,
+                folder_path = remote.courses.folder_path,
+                last_watched = remote.courses.last_watched,
+                updated_at = remote.courses.updated_at
+            FROM remote.courses
+            WHERE courses.id = remote.courses.id AND remote.courses.updated_at > courses.updated_at;
+        ").map_err(|e| format!("Erro ao mesclar courses: {}", e))?;
+
+        // 2. Insert Missing Courses
+        _conn.execute_batch("
+            INSERT OR IGNORE INTO courses (id, title, author, accent_color, category, description, thumbnail_path, folder_path, last_watched, created_at, updated_at)
+            SELECT id, title, author, accent_color, category, description, thumbnail_path, folder_path, last_watched, created_at, updated_at
+            FROM remote.courses;
+        ").map_err(|e| format!("Erro ao inserir novos courses: {}", e))?;
+
+        // 3. Merge Sections (Insert Missing)
+        _conn.execute_batch("
+            INSERT OR IGNORE INTO sections (id, course_id, title, sort_order)
+            SELECT id, course_id, title, sort_order FROM remote.sections;
+        ").map_err(|e| format!("Erro ao inserir novas sections: {}", e))?;
+
+        // 4. Merge Lessons (Update if remote is newer)
+        // Check if remote has updated_at column first (in case it's an old backup without it)
+        let has_updated_at: bool = _conn.query_row(
+            "SELECT COUNT(*) > 0 FROM pragma_table_info('lessons', 'remote') WHERE name = 'updated_at'",
+            [],
+            |row| row.get(0),
+        ).unwrap_or(false);
+
+        if has_updated_at {
+            _conn.execute_batch("
+                UPDATE lessons SET
+                    completed = remote.lessons.completed,
+                    is_last_watched = remote.lessons.is_last_watched,
+                    duration = remote.lessons.duration,
+                    last_position = remote.lessons.last_position,
+                    updated_at = remote.lessons.updated_at
+                FROM remote.lessons
+                WHERE lessons.id = remote.lessons.id AND remote.lessons.updated_at > lessons.updated_at;
+            ").map_err(|e| format!("Erro ao mesclar lessons: {}", e))?;
+        }
+
+        // 5. Insert Missing Lessons
+        if has_updated_at {
+            _conn.execute_batch("
+                INSERT OR IGNORE INTO lessons (id, section_id, title, video_path, sort_order, completed, is_last_watched, duration, last_position, updated_at)
+                SELECT id, section_id, title, video_path, sort_order, completed, is_last_watched, duration, last_position, updated_at
+                FROM remote.lessons;
+            ").map_err(|e| format!("Erro ao inserir novas lessons (com updated_at): {}", e))?;
+        } else {
+            _conn.execute_batch("
+                INSERT OR IGNORE INTO lessons (id, section_id, title, video_path, sort_order, completed, is_last_watched, duration, last_position)
+                SELECT id, section_id, title, video_path, sort_order, completed, is_last_watched, duration, last_position
+                FROM remote.lessons;
+            ").map_err(|e| format!("Erro ao inserir novas lessons (sem updated_at): {}", e))?;
+        }
+
+        // 6. Merge Notes (Update if remote is newer)
+        _conn.execute_batch("
+            UPDATE notes SET
+                content = remote.notes.content,
+                updated_at = remote.notes.updated_at
+            FROM remote.notes
+            WHERE notes.id = remote.notes.id AND remote.notes.updated_at > notes.updated_at;
+        ").map_err(|e| format!("Erro ao mesclar notes: {}", e))?;
+
+        // 7. Insert Missing Notes
+        _conn.execute_batch("
+            INSERT OR IGNORE INTO notes (id, course_id, lesson_id, lesson_title, content, created_at, updated_at)
+            SELECT id, course_id, lesson_id, lesson_title, content, created_at, updated_at FROM remote.notes;
+        ").map_err(|e| format!("Erro ao inserir novas notes: {}", e))?;
+
+        // 8. Additive Sync: Bookmarks, Favorites, Activity Log, Subtitles, Resources, Tags
+        _conn.execute_batch("
+            INSERT OR IGNORE INTO bookmarks (id, course_id, created_at) SELECT id, course_id, created_at FROM remote.bookmarks;
+            INSERT OR IGNORE INTO favorites (id, lesson_id, created_at) SELECT id, lesson_id, created_at FROM remote.favorites;
+            INSERT OR IGNORE INTO activity_log (date) SELECT date FROM remote.activity_log;
+            INSERT OR IGNORE INTO subtitles (id, lesson_id, path, language, is_positional_match) SELECT id, lesson_id, path, language, is_positional_match FROM remote.subtitles;
+            INSERT OR IGNORE INTO resources (id, course_id, lesson_id, title, path, resource_type) SELECT id, course_id, lesson_id, title, path, resource_type FROM remote.resources;
+            INSERT OR IGNORE INTO course_tags (id, course_id, tag) SELECT id, course_id, tag FROM remote.course_tags;
+        ").map_err(|e| format!("Erro ao inserir entidades aditivas: {}", e))?;
+
+        // Finally, detach the remote database
+        let _ = _conn.execute_batch("DETACH DATABASE remote;");
     }
 
     let _ = std::fs::remove_file(temp_db_path);

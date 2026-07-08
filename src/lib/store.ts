@@ -1,4 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+
 import type {
   Course,
   CourseDetail,
@@ -13,6 +15,56 @@ import type {
   LibraryStats,
   SearchResult,
 } from "@/types";
+
+let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+const syncListeners: Set<(syncing: boolean) => void> = new Set();
+let hasPendingSync = false;
+
+// Register close handler to flush pending syncs
+try {
+  getCurrentWindow().onCloseRequested(async (event) => {
+    if (hasPendingSync) {
+      event.preventDefault(); // Stop normal close
+      if (syncTimeout) clearTimeout(syncTimeout);
+      notifySync(true);
+      try {
+        await invoke("backup_database_to_drive");
+      } catch (e) {
+        console.log("Final sync failed", e);
+      }
+      await getCurrentWindow().destroy();
+    }
+  });
+} catch (e) {
+  console.log("Could not register window close listener", e);
+}
+
+export function onSyncStateChange(listener: (syncing: boolean) => void) {
+  syncListeners.add(listener);
+  return () => syncListeners.delete(listener);
+}
+
+function notifySync(state: boolean) {
+  syncListeners.forEach(l => l(state));
+}
+
+export function triggerDebouncedSync() {
+  hasPendingSync = true;
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+  }
+  syncTimeout = setTimeout(async () => {
+    try {
+      notifySync(true);
+      await invoke("backup_database_to_drive");
+      hasPendingSync = false;
+    } catch (e) {
+      console.log("Auto-sync skipped or failed:", e);
+    } finally {
+      notifySync(false);
+    }
+  }, 15000);
+}
 
 export async function getCourses(): Promise<Course[]> {
   return invoke<Course[]>("get_courses");
@@ -56,7 +108,9 @@ export async function deleteCourse(courseId: number): Promise<void> {
 export async function toggleLessonCompleted(
   lessonId: number,
 ): Promise<boolean> {
-  return invoke<boolean>("toggle_lesson_completed", { lessonId });
+  const res = await invoke<boolean>("toggle_lesson_completed", { lessonId });
+  triggerDebouncedSync();
+  return res;
 }
 
 export async function updateLessonDuration(
@@ -70,14 +124,16 @@ export async function saveLessonPosition(
   lessonId: number,
   position: number,
 ): Promise<void> {
-  return invoke("save_lesson_position", { lessonId, position });
+  await invoke("save_lesson_position", { lessonId, position });
+  triggerDebouncedSync();
 }
 
 export async function setLastWatched(
   courseId: number,
   lessonId: number,
 ): Promise<void> {
-  return invoke("set_last_watched", { courseId, lessonId });
+  await invoke("set_last_watched", { courseId, lessonId });
+  triggerDebouncedSync();
 }
 
 export async function getAllNotes(): Promise<NoteWithCourse[]> {
@@ -94,26 +150,34 @@ export async function addNote(
   lessonTitle: string,
   content: string,
 ): Promise<Note> {
-  return invoke<Note>("add_note", { courseId, lessonId, lessonTitle, content });
+  const res = await invoke<Note>("add_note", { courseId, lessonId, lessonTitle, content });
+  triggerDebouncedSync();
+  return res;
 }
 
 export async function updateNote(
   noteId: number,
   content: string,
 ): Promise<void> {
-  return invoke("update_note", { noteId, content });
+  await invoke("update_note", { noteId, content });
+  triggerDebouncedSync();
 }
 
 export async function deleteNote(noteId: number): Promise<void> {
-  return invoke("delete_note", { noteId });
+  await invoke("delete_note", { noteId });
+  triggerDebouncedSync();
 }
 
 export async function toggleBookmark(courseId: number): Promise<boolean> {
-  return invoke<boolean>("toggle_bookmark", { courseId });
+  const res = await invoke<boolean>("toggle_bookmark", { courseId });
+  triggerDebouncedSync();
+  return res;
 }
 
 export async function toggleFavorite(lessonId: number): Promise<boolean> {
-  return invoke<boolean>("toggle_favorite", { lessonId });
+  const res = await invoke<boolean>("toggle_favorite", { lessonId });
+  triggerDebouncedSync();
+  return res;
 }
 
 export async function getAllFavorites(): Promise<FavoriteLesson[]> {
