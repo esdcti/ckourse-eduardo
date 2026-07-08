@@ -6,6 +6,44 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ---
 
+## [1.8.8] - 2026-07-08
+
+### Corrigido
+- Removido import inativo de `invoke` no TypeScript que impedia a compilação.
+
+---
+
+## [1.8.7] - 2026-07-08
+
+### Adicionado
+- **Proxy Nativo GDrive (`gdrive://`)**: Todo o tráfego de vídeo do Google Drive agora passa pelo backend Rust via `reqwest` autenticado. Isso burla o limite de requisições "anti-bot/DDoS" do Google, que bloqueava a tag `<video>` do navegador e impedia a reprodução de mídias muito longas ou com muitos pulos.
+
+---
+
+## [1.8.6] - 2026-07-08
+
+### Corrigido
+- **Bypass de verificação de vírus**: Inserção nativa da flag `&acknowledgeAbuse=true` na API do Google Drive para impedir que vídeos maiores que 100MB retornem HTML de alerta ao invés dos bytes do vídeo.
+
+---
+
+## [1.8.5] - 2026-07-08
+
+### Corrigido
+- Correção crítica no parser do Drive API (`error decoding response body`) ao importar pastas usando apenas a flag `fields=name`.
+- Adicionado Indicador Visual de Conexão no menu de Configurações (com status dinâmico via React state).
+
+---
+
+## [1.8.4] - 2026-07-08
+
+### Adicionado
+- **Integração NATIVA Google Drive via OAuth2**: Agora é possível conectar sua conta do Google e importar pastas do Drive diretamente.
+- O Ckourse roda um mini servidor TCP no Rust (porta 3456) para capturar o callback de OAuth offline.
+- Reprodução de vídeos direto da nuvem via streaming HTTPS da API `alt=media`.
+
+---
+
 ## [1.5.3] - 2026-06-15
 
 ### Corrigido

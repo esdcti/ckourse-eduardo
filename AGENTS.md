@@ -73,6 +73,13 @@ Este documento define as regras e convenções que agentes de IA devem seguir ao
 
 ---
 
+## Integração com APIs e Nuvem (Google Drive)
+
+- **Proxy GDrive (`gdrive://`)**: Sempre que o app precisar reproduzir vídeos da nuvem, NÃO injete a URL externa diretamente no frontend (para evitar bloqueio anti-bot com muitas requisições Range). Use o protocolo `gdrive://`, que faz o backend Rust (`gdrive_protocol.rs`) atuar como proxy utilizando `reqwest`.
+- **OAuth offline**: O app processa callbacks localmente em `127.0.0.1:3456`. Não modifique esse comportamento sem repensar o fluxo de PWA/Mobile.
+
+---
+
 ## Estrutura de Pastas Importante
 
 ```
@@ -90,7 +97,8 @@ src-tauri/src/
 ├── parser.rs         # Parser de pastas de curso
 ├── portable.rs       # Lógica de modo portátil
 ├── subtitle.rs       # Manipulação de legendas
-└── video_protocol.rs # Streaming de vídeo local
+├── video_protocol.rs # Streaming de vídeo local
+└── gdrive_protocol.rs# Proxy de streaming para o Google Drive
 ```
 
 ---

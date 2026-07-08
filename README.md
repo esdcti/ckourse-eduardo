@@ -21,6 +21,7 @@ Seu media player não sabe o que "Seção 4 - Aula 12" significa. Seu gerenciado
 ### ✅ v1.5 — Atual
 - 📁 **Importação inteligente de pastas** — aponte o Ckourse para qualquer pasta de curso e ele analisa a estrutura automaticamente
 - 🎬 **Importação do YouTube** — cole a URL de uma playlist, acompanhe o progresso em tempo real (vídeo X/Y + barra animada) e importe como curso (requer yt-dlp + ffmpeg)
+- ☁️ **Importação do Google Drive** — vincule sua conta do Google via OAuth e importe pastas de cursos inteiras diretamente da nuvem, sem ocupar espaço no HD!
 - ▶️ **Player de vídeo integrado** — player HTML5 com legendas, autoplay, PiP e navegação por timestamp
 - ⌨️ **Atalhos de teclado completos** — Space, N/P (próxima/anterior), F (fullscreen), M (mute), J/L (skip), C (legendas)
 - 📊 **Rastreamento de progresso** — conclusão por aula, barra de progresso, retome de onde parou
@@ -163,8 +164,9 @@ ckourse/
 │   │   ├── portable.rs       # Lógica de modo portátil
 │   │   ├── subtitle.rs       # Manipulação de legendas
 │   │   ├── video_protocol.rs # Streaming de vídeo local
+│   │   ├── gdrive_protocol.rs# Proxy de streaming para o Google Drive
 │   │   └── commands/         # courses.rs, lessons.rs, notes.rs,
-│   │                         #   settings.rs, portable.rs, youtube.rs
+│   │                         #   settings.rs, portable.rs, youtube.rs, drive.rs
 │   └── tauri.conf.json       # Configuração do Tauri
 └── public/                   # Assets estáticos
 ```
@@ -191,15 +193,13 @@ Seus cursos podem estar em qualquer pasta do cartão. O progresso, notas e confi
 
 ---
 
-## Uso com Google Drive / OneDrive
+## Uso com a Nuvem (Google Drive)
 
-O Ckourse funciona nativamente com pastas sincronizadas na nuvem:
+O Ckourse possui integração oficial com a API do Google Drive via OAuth2. 
 
-**Cursos no Drive:** importe normalmente apontando para a pasta no Drive (ex: `G:\Meus Cursos\React\`).
+**Cursos na Nuvem (Streaming):** Nas configurações, clique em "Conectar Conta do Google". Depois disso, você pode colar o link de qualquer pasta do seu Drive e o Ckourse vai importar todos os vídeos. O aplicativo possui um Proxy Nativo em Rust (`gdrive://`) que permite o streaming dos arquivos MP4 direto da nuvem (semelhante à Netflix), burlando a necessidade de baixar o vídeo inteiro e contornando os limites anti-robô da plataforma.
 
-**Progresso sincronizado entre PCs:** vá em Configurações → Biblioteca → "Alterar local" e aponte para uma pasta no Drive. O banco de dados será salvo lá e sincronizado automaticamente.
-
-**Dica:** marque as pastas de cursos como "Disponível offline" no Google Drive para evitar buffering ao assistir sem internet.
+**Banco de Dados na Nuvem (Sync via Desktop):** Opcionalmente, você pode ir em Configurações → Biblioteca → "Alterar local" e apontar o `ckourse.db` para a pasta raiz do seu *Google Drive para Desktop*. Com isso, você pode abrir o Ckourse em vários computadores e ter o progresso compartilhado. *(Nota: O backup nativo direto para a nuvem via API está em desenvolvimento nas próximas versões).*
 
 ---
 
