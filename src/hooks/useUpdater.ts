@@ -72,6 +72,22 @@ export function useUpdaterProvider(): UpdaterApi {
   const install = useCallback(async () => {
     const update = updateRef.current;
     if (!update) return;
+    
+    // Check if we are on Android
+    const isAndroid = navigator.userAgent.toLowerCase().includes('android');
+    
+    if (isAndroid) {
+      try {
+        const { open } = await import("@tauri-apps/plugin-opener");
+        await open("https://github.com/esdcti/ckourse-eduardo/releases/latest/download/app-universal-debug.apk");
+        // Dismiss after opening link
+        setDismissed(true);
+      } catch (err) {
+        console.error("Could not open update link", err);
+      }
+      return;
+    }
+
     try {
       totalBytesRef.current = 0;
       downloadedBytesRef.current = 0;
