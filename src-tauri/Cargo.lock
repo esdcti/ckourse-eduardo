@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "ckourse"
-version = "1.10.8"
+version = "1.10.17"
 dependencies = [
  "percent-encoding",
  "reqwest 0.12.28",

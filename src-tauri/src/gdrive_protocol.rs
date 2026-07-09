@@ -76,6 +76,7 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
     }
     
     headers.insert(RANGE, HeaderValue::from_str(&requested_range).unwrap());
+    let has_range_header = request.headers().contains_key(header::RANGE);
 
     let mut res = client.get(&url).headers(headers.clone()).send().await;
 
@@ -101,23 +102,50 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         }
     };
 
-    let status =
+    let mut status =
         StatusCode::from_u16(response.status().as_u16()).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
 
     let mut builder = Response::builder()
-        .status(status)
-        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+        .header(header::ACCEPT_RANGES, "bytes");
+
+    if !has_range_header && status == StatusCode::PARTIAL_CONTENT {
+        status = StatusCode::OK;
+    }
+
+    builder = builder.status(status);
+
+    let mut content_length_set = false;
+
+    if !has_range_header && status == StatusCode::OK {
+        // We need to provide the full file size in Content-Length for a 200 OK response
+        if let Some(cr) = response.headers().get(reqwest::header::CONTENT_RANGE) {
+            if let Ok(cr_str) = cr.to_str() {
+                if let Some(total_size_str) = cr_str.split('/').last() {
+                    if let Ok(total_size) = total_size_str.parse::<u64>() {
+                        builder = builder.header(header::CONTENT_LENGTH, total_size.to_string());
+                        content_length_set = true;
+                    }
+                }
+            }
+        }
+    }
 
     let headers_to_copy = [
         reqwest::header::CONTENT_TYPE,
         reqwest::header::CONTENT_LENGTH,
         reqwest::header::CONTENT_RANGE,
-        reqwest::header::ACCEPT_RANGES,
     ];
 
     for h in headers_to_copy {
         if let Some(val) = response.headers().get(&h) {
             if let Ok(v) = tauri::http::HeaderValue::from_bytes(val.as_bytes()) {
+                if h == reqwest::header::CONTENT_RANGE && !has_range_header {
+                    continue; // Do not send Content-Range for a 200 OK
+                }
+                if h == reqwest::header::CONTENT_LENGTH && content_length_set {
+                    continue; // Already set to full size
+                }
                 builder = builder.header(h.as_str(), v);
             }
         }

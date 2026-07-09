@@ -66,9 +66,20 @@ fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
         };
     }
 
-    // No range header provided, serve the first chunk as 206 Partial Content anyway to prevent OOM
-    let end = std::cmp::min(file_size.saturating_sub(1), MAX_CHUNK_SIZE.saturating_sub(1));
-    serve_range(&mut file, 0, end, file_size, mime)
+    // No range header provided: serve the first chunk as 200 OK with full Content-Length.
+    // This indicates to mobile WebViews that the file exists and supports Range requests.
+    let read_len = std::cmp::min(file_size, MAX_CHUNK_SIZE) as usize;
+    let mut buf = vec![0u8; read_len];
+    let _ = file.read_exact(&mut buf);
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, mime)
+        .header(header::CONTENT_LENGTH, file_size.to_string())
+        .header(header::ACCEPT_RANGES, "bytes")
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+        .body(buf)
+        .unwrap_or_else(|_| status_only(StatusCode::INTERNAL_SERVER_ERROR))
 }
 
 fn serve_range(

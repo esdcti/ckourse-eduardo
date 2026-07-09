@@ -10,18 +10,18 @@ Este documento define as regras e convenções que agentes de IA devem seguir ao
 2. **Commits**: Usar Conventional Commits em português — `feat:`, `fix:`, `docs:`, `ci:`, `refactor:`, `style:`, `chore:`.
 3. **Sem testes obrigatórios**: Não adicione testes a menos que explicitamente solicitado.
 4. **Não quebre o build**: Toda alteração deve manter o projeto compilável.
-5. **Versionamento**: Ao adicionar features, bumpe a versão em TODOS os 3 locais:
+5. **Versionamento (MUITO IMPORTANTE)**: Sempre que fizer alterações que resolvem problemas ou adicionam features, você **DEVE** fazer o bump da versão (ex: de `1.10.16` para `1.10.17`) em **TODOS** os 3 locais:
    - `package.json` → `"version"`
    - `src-tauri/Cargo.toml` → `version`
    - `src-tauri/tauri.conf.json` → `"version"`
 
 ---
 
-## Fluxo de Release
+## Fluxo de Release Automático (GitHub Actions)
 
-- **Cada push na `main` com mudança de código gera uma release automaticamente** via GitHub Actions.
-- O workflow lê a versão do `package.json`, cria a tag e builda o instalador.
-- Para triggerar uma nova release, basta bumpar a versão nos 3 arquivos e fazer push.
+- **O repositório já possui GitHub Actions configurado para release automático.**
+- **Cada push na `main` com mudança na versão gera uma nova release.** O workflow lê a versão do `package.json`, cria a tag e faz o build do instalador.
+- **Para atualizar o app e entregar a correção/feature:** Você só precisa bumpar a versão nos 3 arquivos citados acima e fazer o push.
 - Pushes que alteram apenas `.md` ou `.github/**` não disparam build (economia de CI).
 
 ---
