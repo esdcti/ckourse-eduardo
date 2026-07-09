@@ -55,14 +55,22 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         let s = range_header.to_str().unwrap_or("");
         if let Some(s) = s.strip_prefix("bytes=") {
             if let Some((a, b)) = s.split_once('-') {
-                let start: u64 = a.parse().unwrap_or(0);
-                let end = b.parse::<u64>().ok();
-                
-                let new_end = match end {
-                    Some(e) => if e - start + 1 > max_chunk { start + max_chunk - 1 } else { e },
-                    None => start + max_chunk - 1,
-                };
-                requested_range = format!("bytes={}-{}", start, new_end);
+                if a.is_empty() {
+                    // This is a suffix request: bytes=-500
+                    if let Ok(suffix) = b.parse::<u64>() {
+                        let clamped_suffix = std::cmp::min(suffix, max_chunk);
+                        requested_range = format!("bytes=-{}", clamped_suffix);
+                    }
+                } else {
+                    let start: u64 = a.parse().unwrap_or(0);
+                    let end = b.parse::<u64>().ok();
+                    
+                    let new_end = match end {
+                        Some(e) => if e >= start && e - start + 1 > max_chunk { start + max_chunk - 1 } else { e },
+                        None => start + max_chunk - 1,
+                    };
+                    requested_range = format!("bytes={}-{}", start, new_end);
+                }
             }
         }
     }
