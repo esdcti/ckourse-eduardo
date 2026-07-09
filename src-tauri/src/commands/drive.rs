@@ -586,18 +586,18 @@ pub async fn restore_database_from_drive(
         // SMART MERGE LOGIC
         // 1. Merge Courses (update local if remote is newer)
         _conn.execute_batch("
-            UPDATE courses SET
-                title = remote.courses.title,
-                author = remote.courses.author,
-                accent_color = remote.courses.accent_color,
-                category = remote.courses.category,
-                description = remote.courses.description,
-                thumbnail_path = remote.courses.thumbnail_path,
-                folder_path = remote.courses.folder_path,
-                last_watched = remote.courses.last_watched,
-                updated_at = remote.courses.updated_at
-            FROM remote.courses
-            WHERE courses.id = remote.courses.id AND remote.courses.updated_at > courses.updated_at;
+            UPDATE courses AS local_c SET
+                title = remote_c.title,
+                author = remote_c.author,
+                accent_color = remote_c.accent_color,
+                category = remote_c.category,
+                description = remote_c.description,
+                thumbnail_path = remote_c.thumbnail_path,
+                folder_path = remote_c.folder_path,
+                last_watched = remote_c.last_watched,
+                updated_at = remote_c.updated_at
+            FROM remote.courses AS remote_c
+            WHERE local_c.id = remote_c.id AND remote_c.updated_at > local_c.updated_at;
         ").map_err(|e| format!("Erro ao mesclar courses: {}", e))?;
 
         // 2. Insert Missing Courses
@@ -623,14 +623,14 @@ pub async fn restore_database_from_drive(
 
         if has_updated_at {
             _conn.execute_batch("
-                UPDATE lessons SET
-                    completed = remote.lessons.completed,
-                    is_last_watched = remote.lessons.is_last_watched,
-                    duration = remote.lessons.duration,
-                    last_position = remote.lessons.last_position,
-                    updated_at = remote.lessons.updated_at
-                FROM remote.lessons
-                WHERE lessons.id = remote.lessons.id AND remote.lessons.updated_at > lessons.updated_at;
+                UPDATE lessons AS local_l SET
+                    completed = remote_l.completed,
+                    is_last_watched = remote_l.is_last_watched,
+                    duration = remote_l.duration,
+                    last_position = remote_l.last_position,
+                    updated_at = remote_l.updated_at
+                FROM remote.lessons AS remote_l
+                WHERE local_l.id = remote_l.id AND remote_l.updated_at > local_l.updated_at;
             ").map_err(|e| format!("Erro ao mesclar lessons: {}", e))?;
         }
 
@@ -651,11 +651,11 @@ pub async fn restore_database_from_drive(
 
         // 6. Merge Notes (Update if remote is newer)
         _conn.execute_batch("
-            UPDATE notes SET
-                content = remote.notes.content,
-                updated_at = remote.notes.updated_at
-            FROM remote.notes
-            WHERE notes.id = remote.notes.id AND remote.notes.updated_at > notes.updated_at;
+            UPDATE notes AS local_n SET
+                content = remote_n.content,
+                updated_at = remote_n.updated_at
+            FROM remote.notes AS remote_n
+            WHERE local_n.id = remote_n.id AND remote_n.updated_at > local_n.updated_at;
         ").map_err(|e| format!("Erro ao mesclar notes: {}", e))?;
 
         // 7. Insert Missing Notes
