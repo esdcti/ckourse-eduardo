@@ -19,6 +19,8 @@ pub fn handle(
     });
 }
 
+const MAX_CHUNK_SIZE: u64 = 5 * 1024 * 1024; // 5 MB
+
 fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
     let path = match decode_path(request) {
         Some(p) => p,
@@ -64,18 +66,9 @@ fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
         };
     }
 
-    let mut buf = Vec::with_capacity(file_size as usize);
-    if file.read_to_end(&mut buf).is_err() {
-        return status_only(StatusCode::INTERNAL_SERVER_ERROR);
-    }
-    Response::builder()
-        .status(StatusCode::OK)
-        .header(header::CONTENT_TYPE, mime)
-        .header(header::CONTENT_LENGTH, file_size.to_string())
-        .header(header::ACCEPT_RANGES, "bytes")
-        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-        .body(buf)
-        .unwrap_or_else(|_| status_only(StatusCode::INTERNAL_SERVER_ERROR))
+    // No range header provided, serve the first chunk as 206 Partial Content anyway to prevent OOM
+    let end = std::cmp::min(file_size.saturating_sub(1), MAX_CHUNK_SIZE.saturating_sub(1));
+    serve_range(&mut file, 0, end, file_size, mime)
 }
 
 fn serve_range(
@@ -132,17 +125,23 @@ fn parse_range(header_value: &HeaderValue, file_size: u64) -> Option<(u64, u64)>
         if suffix == 0 || suffix > file_size {
             return None;
         }
-        return Some((file_size - suffix, file_size - 1));
+        let start = file_size - suffix;
+        let end = file_size - 1;
+        let clamped_start = if end - start + 1 > MAX_CHUNK_SIZE { end - MAX_CHUNK_SIZE + 1 } else { start };
+        return Some((clamped_start, end));
     }
 
     let start: u64 = a.parse().ok()?;
-    let end: u64 = if b.is_empty() {
+    let mut end: u64 = if b.is_empty() {
         file_size.checked_sub(1)?
     } else {
         b.parse().ok()?
     };
     if start > end || end >= file_size {
         return None;
+    }
+    if end - start + 1 > MAX_CHUNK_SIZE {
+        end = start + MAX_CHUNK_SIZE - 1;
     }
     Some((start, end))
 }

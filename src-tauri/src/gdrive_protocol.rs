@@ -47,12 +47,27 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
     );
 
-    // Forward the Range header from the frontend
+    let max_chunk = 5 * 1024 * 1024; // 5 MB
+    let mut requested_range = "bytes=0-5242879".to_string(); // Default to first chunk to prevent OOM
+
+    // Forward and clamp the Range header from the frontend
     if let Some(range_header) = request.headers().get(header::RANGE) {
-        if let Ok(r) = HeaderValue::from_bytes(range_header.as_bytes()) {
-            headers.insert(RANGE, r);
+        let s = range_header.to_str().unwrap_or("");
+        if let Some(s) = s.strip_prefix("bytes=") {
+            if let Some((a, b)) = s.split_once('-') {
+                let start: u64 = a.parse().unwrap_or(0);
+                let end = b.parse::<u64>().ok();
+                
+                let new_end = match end {
+                    Some(e) => if e - start + 1 > max_chunk { start + max_chunk - 1 } else { e },
+                    None => start + max_chunk - 1,
+                };
+                requested_range = format!("bytes={}-{}", start, new_end);
+            }
         }
     }
+    
+    headers.insert(RANGE, HeaderValue::from_str(&requested_range).unwrap());
 
     let mut res = client.get(&url).headers(headers.clone()).send().await;
 
