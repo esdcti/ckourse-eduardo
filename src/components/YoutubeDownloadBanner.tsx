@@ -2,10 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useYoutubeDownload } from "@/hooks/useYoutubeDownload";
 import { EASE_OUT } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 
 export function YoutubeDownloadBanner() {
   const { active, progress, error, dismiss } = useYoutubeDownload();
   const navigate = useNavigate();
+  const t = useI18n();
 
   if (!active) return null;
 
@@ -37,7 +39,7 @@ export function YoutubeDownloadBanner() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between">
             <p className="font-sans text-sm font-semibold text-foreground">
-              {isError ? "Erro no download" : isDone ? "Download concluído!" : "Baixando do YouTube"}
+              {isError ? t.downloadError : isDone ? t.downloadComplete : t.downloadingFromYoutube}
             </p>
             {progress?.videoIndex && progress?.totalVideos && !isDone && (
               <span className="shrink-0 font-mono text-xs text-muted-foreground">

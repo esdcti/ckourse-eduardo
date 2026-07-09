@@ -117,6 +117,8 @@ struct DriveFile {
     #[serde(rename = "mimeType")]
     mime_type: String,
     size: Option<String>,
+    #[serde(rename = "thumbnailLink")]
+    thumbnail_link: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -182,7 +184,7 @@ pub(crate) async fn force_refresh_token(state: &tauri::State<'_, DbState>) -> Re
 async fn fetch_folder(token: &str, folder_id: &str) -> Result<Vec<DriveFile>, String> {
     let client = Client::new();
     let url = format!(
-        "https://www.googleapis.com/drive/v3/files?q='{}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,size)&pageSize=1000&orderBy=name",
+        "https://www.googleapis.com/drive/v3/files?q='{}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,size,thumbnailLink)&pageSize=1000&orderBy=name",
         folder_id
     );
     let res = client.get(&url)
@@ -274,11 +276,15 @@ pub async fn scan_google_drive(
     let mut root_lessons = Vec::new();
     let mut order_counter = 1;
     let mut subfolders = Vec::new();
+    let mut course_thumbnail: Option<String> = None;
 
     for file in root_files {
         if file.mime_type == "application/vnd.google-apps.folder" {
             subfolders.push(file);
         } else if is_video(&file.mime_type, &file.name) {
+            if course_thumbnail.is_none() && file.thumbnail_link.is_some() {
+                course_thumbnail = file.thumbnail_link.clone();
+            }
             root_lessons.push(ParsedLesson {
                 title: file.name.replace(".mp4", "").replace(".mkv", ""),
                 order: order_counter,
@@ -315,6 +321,9 @@ pub async fn scan_google_drive(
         
         for item in items {
             if is_video(&item.mime_type, &item.name) {
+                if course_thumbnail.is_none() && item.thumbnail_link.is_some() {
+                    course_thumbnail = item.thumbnail_link.clone();
+                }
                 lessons.push(ParsedLesson {
                     title: item.name.replace(".mp4", "").replace(".mkv", ""),
                     order: lesson_order,
@@ -345,7 +354,7 @@ pub async fn scan_google_drive(
     Ok(ParsedCourse {
         title: course_title,
         description: None,
-        thumbnail_path: None,
+        thumbnail_path: course_thumbnail,
         sections,
         resources: course_resources,
         confidence: Confidence::High,

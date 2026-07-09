@@ -81,6 +81,8 @@ const accentColors = [
   "#C8F135",
 ];
 
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 interface ImportCourseProps {
   className?: string;
 }
@@ -89,7 +91,7 @@ export function ImportCourse({ className }: ImportCourseProps) {
   const navigate = useNavigate();
   const t = useI18n();
   const [step, setStep] = useState<"select" | "configure">("select");
-  const [source, setSource] = useState<"folder" | "youtube" | "gdrive">("folder");
+  const [source, setSource] = useState<"folder" | "youtube" | "gdrive">(isMobile ? "gdrive" : "folder");
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -316,34 +318,38 @@ export function ImportCourse({ className }: ImportCourseProps) {
       {step === "select" ? (
         <div>
           <div className="mb-4 flex items-center gap-2" style={{ animation: `card-in 350ms ${EASE_OUT} both` }}>
-            <button
-              onClick={() => setSource("folder")}
-              className={cn(
-                "rounded-lg px-4 py-2 font-sans text-sm font-medium transition-colors",
-                source === "folder"
-                  ? "bg-primary/15 text-primary border border-primary/25"
-                  : "text-muted-foreground hover:text-foreground border border-border",
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <FolderOpen className="size-4" />
-                {t.browseFolder}
-              </span>
-            </button>
-            <button
-              onClick={() => setSource("youtube")}
-              className={cn(
-                "rounded-lg px-4 py-2 font-sans text-sm font-medium transition-colors",
-                source === "youtube"
-                  ? "bg-primary/15 text-primary border border-primary/25"
-                  : "text-muted-foreground hover:text-foreground border border-border",
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <FileVideo className="size-4" />
-                YouTube
-              </span>
-            </button>
+            {!isMobile && (
+              <button
+                onClick={() => setSource("folder")}
+                className={cn(
+                  "rounded-lg px-4 py-2 font-sans text-sm font-medium transition-colors",
+                  source === "folder"
+                    ? "bg-primary/15 text-primary border border-primary/25"
+                    : "text-muted-foreground hover:text-foreground border border-border",
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <FolderOpen className="size-4" />
+                  {t.browseFolder}
+                </span>
+              </button>
+            )}
+            {!isMobile && (
+              <button
+                onClick={() => setSource("youtube")}
+                className={cn(
+                  "rounded-lg px-4 py-2 font-sans text-sm font-medium transition-colors",
+                  source === "youtube"
+                    ? "bg-primary/15 text-primary border border-primary/25"
+                    : "text-muted-foreground hover:text-foreground border border-border",
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <FileVideo className="size-4" />
+                  YouTube
+                </span>
+              </button>
+            )}
             <button
               onClick={() => setSource("gdrive")}
               className={cn(
@@ -390,7 +396,7 @@ export function ImportCourse({ className }: ImportCourseProps) {
                       type="url"
                       value={ytUrl}
                       onChange={(e) => setYtUrl(e.target.value)}
-                      placeholder="https://youtube.com/playlist?list=..."
+                      placeholder={t.pasteYoutubeLink}
                       className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 font-sans text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
                       onKeyDown={(e) => { if (e.key === "Enter") handleYoutubeDownload(); }}
                     />
@@ -432,7 +438,12 @@ export function ImportCourse({ className }: ImportCourseProps) {
                           />
                         </div>
                         {!ytDownload.progress && (
-                          <p className="mt-2 font-sans text-xs text-muted-foreground">Conectando ao YouTube...</p>
+                          <div className="relative mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                            <div className="absolute inset-0 bg-primary/20 flex animate-pulse rounded-full" />
+                          </div>
+                        )}
+                        {!ytDownload.progress && (
+                          <p className="mt-2 font-sans text-xs text-muted-foreground">{t.connectingToYoutube}</p>
                         )}
                       </div>
                     </div>

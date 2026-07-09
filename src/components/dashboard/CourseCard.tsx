@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { Course } from "@/types";
 import { toggleBookmark } from "@/lib/store";
 import { useI18n, type Translations } from "@/lib/i18n";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 function getStatusBadge(status: Course["status"], t: Translations) {
   switch (status) {
@@ -75,19 +76,26 @@ export function CourseCard({ course, onBookmarkChange }: { course: Course; onBoo
 
         <div className="squircle-subtle absolute inset-0 overflow-hidden">
           <div
-            className="relative flex h-24 items-center justify-center"
-            style={{ backgroundColor: `${course.accentColor}10` }}
+            className="relative flex h-24 items-center justify-center bg-cover bg-center"
+            style={{ 
+              backgroundColor: `${course.accentColor}10`,
+              backgroundImage: course.thumbnailPath 
+                ? `url("${course.thumbnailPath.startsWith('gdrive://') || course.thumbnailPath.startsWith('http') ? course.thumbnailPath : convertFileSrc(course.thumbnailPath)}")` 
+                : undefined
+            }}
           >
             <div
               className="absolute inset-x-0 top-0 h-1.5"
               style={{ backgroundColor: course.accentColor }}
             />
-            <span
-              className="font-heading text-2xl font-bold opacity-20"
-              style={{ color: course.accentColor }}
-            >
-              {course.title.split(/[\s—-]/)[0]}
-            </span>
+            {!course.thumbnailPath && (
+              <span
+                className="font-heading text-2xl font-bold opacity-20"
+                style={{ color: course.accentColor }}
+              >
+                {course.title.split(/[\s—-]/)[0]}
+              </span>
+            )}
           </div>
         </div>
 

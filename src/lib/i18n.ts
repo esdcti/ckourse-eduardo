@@ -107,6 +107,13 @@ export interface Translations {
   customCategory: string;
   categoryName: string;
 
+  // YouTube
+  connectingToYoutube: string;
+  downloadingFromYoutube: string;
+  downloadError: string;
+  downloadComplete: string;
+  pasteYoutubeLink: string;
+
   // Course Detail
   resources: string;
   curriculum: string;
@@ -418,7 +425,14 @@ const en: Translations = {
   lessonsWillBeImported: "lessons will be imported",
   section: "section",
   customCategory: "+ Custom",
-  categoryName: "Category name",
+  categoryName: "Category Name",
+
+  // YouTube
+  connectingToYoutube: "Connecting to YouTube...",
+  downloadingFromYoutube: "Downloading from YouTube",
+  downloadError: "Download error",
+  downloadComplete: "Download complete!",
+  pasteYoutubeLink: "Paste YouTube playlist link here...",
 
   resources: "Resources",
   curriculum: "Curriculum",
@@ -716,7 +730,14 @@ const ptBR: Translations = {
   lessonsWillBeImported: "aulas serão importadas",
   section: "seção",
   customCategory: "+ Personalizar",
-  categoryName: "Nome da categoria",
+  categoryName: "Nome da Categoria",
+
+  // YouTube
+  connectingToYoutube: "Conectando ao YouTube...",
+  downloadingFromYoutube: "Baixando do YouTube",
+  downloadError: "Erro no download",
+  downloadComplete: "Download concluído!",
+  pasteYoutubeLink: "Cole o link da playlist do YouTube aqui...",
 
   resources: "Recursos",
   curriculum: "Currículo",
