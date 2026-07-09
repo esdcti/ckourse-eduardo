@@ -78,8 +78,8 @@ export function useUpdaterProvider(): UpdaterApi {
     
     if (isAndroid) {
       try {
-        const { open } = await import("@tauri-apps/plugin-opener");
-        await open("https://github.com/esdcti/ckourse-eduardo/releases/latest/download/app-universal-debug.apk");
+        const { openUrl } = await import("@tauri-apps/plugin-opener");
+        await openUrl("https://github.com/esdcti/ckourse-eduardo/releases/latest/download/app-universal-debug.apk");
         // Dismiss after opening link
         setDismissed(true);
       } catch (err) {
