@@ -576,6 +576,9 @@ pub async fn restore_database_from_drive(
     {
         let _conn = state.conn.lock().map_err(|e| e.to_string())?;
         
+        // Detach if previously left attached due to an error
+        let _ = _conn.execute_batch("DETACH DATABASE remote;");
+
         // Ensure the downloaded database is intact and attach it
         _conn.execute("ATTACH DATABASE ?1 AS remote", rusqlite::params![temp_db_path.to_str().unwrap()])
             .map_err(|e| format!("Erro ao anexar banco remoto: {}", e))?;
