@@ -30,7 +30,7 @@ try {
       try {
         await Promise.race([
           invoke("backup_database_to_drive"),
-          new Promise((_, resolve) => setTimeout(() => resolve(undefined), 3000))
+          new Promise((resolve) => setTimeout(() => resolve(undefined), 3000))
         ]);
       } catch (e) {
         console.log("Final sync failed", e);
