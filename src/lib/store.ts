@@ -26,6 +26,8 @@ try {
     if (hasPendingSync) {
       event.preventDefault(); // Stop normal close
       if (syncTimeout) clearTimeout(syncTimeout);
+      syncTimeout = null;
+      hasPendingSync = false; // Reset immediately to avoid re-entry
       notifySync(true);
       try {
         await Promise.race([
@@ -35,7 +37,18 @@ try {
       } catch (e) {
         console.log("Final sync failed", e);
       }
-      await getCurrentWindow().destroy();
+      try {
+        await getCurrentWindow().destroy();
+      } catch {
+        // Fallback: force exit via Tauri process plugin
+        try {
+          const { exit } = await import("@tauri-apps/plugin-process");
+          await exit(0);
+        } catch {
+          // Last resort
+          console.error("Could not close window");
+        }
+      }
     }
   });
 } catch (e) {
@@ -60,10 +73,10 @@ export function triggerDebouncedSync() {
     try {
       notifySync(true);
       await invoke("backup_database_to_drive");
-      hasPendingSync = false;
     } catch (e) {
       console.log("Auto-sync skipped or failed:", e);
     } finally {
+      hasPendingSync = false;
       notifySync(false);
     }
   }, 15000);
