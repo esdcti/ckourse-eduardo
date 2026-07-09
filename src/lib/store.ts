@@ -20,40 +20,6 @@ let syncTimeout: ReturnType<typeof setTimeout> | null = null;
 const syncListeners: Set<(syncing: boolean) => void> = new Set();
 let hasPendingSync = false;
 
-// Register close handler to flush pending syncs
-try {
-  getCurrentWindow().onCloseRequested(async (event) => {
-    if (hasPendingSync) {
-      event.preventDefault(); // Stop normal close
-      if (syncTimeout) clearTimeout(syncTimeout);
-      syncTimeout = null;
-      hasPendingSync = false; // Reset immediately to avoid re-entry
-      notifySync(true);
-      try {
-        await Promise.race([
-          invoke("backup_database_to_drive"),
-          new Promise((resolve) => setTimeout(() => resolve(undefined), 3000))
-        ]);
-      } catch (e) {
-        console.log("Final sync failed", e);
-      }
-      try {
-        await getCurrentWindow().destroy();
-      } catch {
-        // Fallback: force exit via Tauri process plugin
-        try {
-          const { exit } = await import("@tauri-apps/plugin-process");
-          await exit(0);
-        } catch {
-          // Last resort
-          console.error("Could not close window");
-        }
-      }
-    }
-  });
-} catch (e) {
-  console.log("Could not register window close listener", e);
-}
 
 export function onSyncStateChange(listener: (syncing: boolean) => void): () => void {
   syncListeners.add(listener);
