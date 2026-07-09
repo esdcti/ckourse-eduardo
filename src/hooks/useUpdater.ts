@@ -43,7 +43,36 @@ export function useUpdaterProvider(): UpdaterApi {
     const silent = opts?.silent ?? false;
     try {
       setState((s) => ({ ...s, status: silent ? s.status : "checking", error: undefined }));
-      const update = await check();
+      
+      const isAndroid = navigator.userAgent.toLowerCase().includes('android');
+      let update: any = null;
+      
+      if (isAndroid) {
+        try {
+          const res = await fetch("https://api.github.com/repos/esdcti/ckourse-eduardo/releases/latest");
+          if (res.ok) {
+            const data = await res.json();
+            const latestVersion = data.tag_name?.replace('v', '');
+            const { getVersion } = await import("@tauri-apps/api/app");
+            const currentVersion = await getVersion();
+            
+            // Simple check: if latest version is different, it's an update
+            if (latestVersion && latestVersion !== currentVersion) {
+              update = {
+                version: latestVersion,
+                currentVersion,
+                body: data.body,
+                downloadAndInstall: async () => {}
+              };
+            }
+          }
+        } catch (e) {
+          console.error("Failed to check android update", e);
+        }
+      } else {
+        update = await check();
+      }
+
       if (!update) {
         updateRef.current = null;
         setState((s) => ({
