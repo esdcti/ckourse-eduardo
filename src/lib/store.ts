@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+
 
 import type {
   Course,
@@ -18,7 +18,7 @@ import type {
 
 let syncTimeout: ReturnType<typeof setTimeout> | null = null;
 const syncListeners: Set<(syncing: boolean) => void> = new Set();
-let hasPendingSync = false;
+
 
 
 export function onSyncStateChange(listener: (syncing: boolean) => void): () => void {
@@ -31,7 +31,6 @@ function notifySync(state: boolean) {
 }
 
 export function triggerDebouncedSync() {
-  hasPendingSync = true;
   if (syncTimeout) {
     clearTimeout(syncTimeout);
   }
@@ -42,7 +41,6 @@ export function triggerDebouncedSync() {
     } catch (e) {
       console.log("Auto-sync skipped or failed:", e);
     } finally {
-      hasPendingSync = false;
       notifySync(false);
     }
   }, 15000);
