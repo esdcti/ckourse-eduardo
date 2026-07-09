@@ -81,7 +81,9 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
     let status =
         StatusCode::from_u16(response.status().as_u16()).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
 
-    let mut builder = Response::builder().status(status);
+    let mut builder = Response::builder()
+        .status(status)
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 
     let headers_to_copy = [
         reqwest::header::CONTENT_TYPE,
@@ -124,6 +126,7 @@ fn decode_path(request: &Request<Vec<u8>>) -> Option<String> {
 fn status_only(status: StatusCode) -> Response<Vec<u8>> {
     Response::builder()
         .status(status)
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         .body(Vec::new())
         .expect("status-only response")
 }

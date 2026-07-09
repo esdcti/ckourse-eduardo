@@ -47,6 +47,7 @@ fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
             .header(header::CONTENT_TYPE, mime)
             .header(header::CONTENT_LENGTH, file_size.to_string())
             .header(header::ACCEPT_RANGES, "bytes")
+            .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
             .body(Vec::new())
             .unwrap_or_else(|_| status_only(StatusCode::INTERNAL_SERVER_ERROR));
     }
@@ -57,6 +58,7 @@ fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
             None => Response::builder()
                 .status(StatusCode::RANGE_NOT_SATISFIABLE)
                 .header(header::CONTENT_RANGE, format!("bytes */{}", file_size))
+                .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
                 .body(Vec::new())
                 .unwrap_or_else(|_| status_only(StatusCode::INTERNAL_SERVER_ERROR)),
         };
@@ -71,6 +73,7 @@ fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
         .header(header::CONTENT_TYPE, mime)
         .header(header::CONTENT_LENGTH, file_size.to_string())
         .header(header::ACCEPT_RANGES, "bytes")
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         .body(buf)
         .unwrap_or_else(|_| status_only(StatusCode::INTERNAL_SERVER_ERROR))
 }
@@ -99,6 +102,7 @@ fn serve_range(
             format!("bytes {}-{}/{}", start, end, file_size),
         )
         .header(header::ACCEPT_RANGES, "bytes")
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         .body(buf)
         .unwrap_or_else(|_| status_only(StatusCode::INTERNAL_SERVER_ERROR))
 }
@@ -162,6 +166,7 @@ fn guess_mime(path: &Path) -> &'static str {
 fn status_only(status: StatusCode) -> Response<Vec<u8>> {
     Response::builder()
         .status(status)
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         .body(Vec::new())
         .expect("status-only response")
 }
