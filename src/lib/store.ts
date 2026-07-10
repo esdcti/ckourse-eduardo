@@ -315,3 +315,13 @@ export function exportNotesAsMarkdown(notes: { lessonTitle: string; content: str
 
   return lines.join("\n");
 }
+
+// --- Diagnostics (in-app debug log, useful on mobile without USB/adb) ---
+
+export async function getDebugLog(): Promise<string[]> {
+  return invoke<string[]>("get_debug_log");
+}
+
+export async function clearDebugLog(): Promise<void> {
+  await invoke("clear_debug_log");
+}

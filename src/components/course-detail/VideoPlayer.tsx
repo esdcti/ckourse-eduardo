@@ -28,7 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatVideoTime } from "@/lib/format";
 import type { Lesson, Subtitle, VideoPlayerHandle } from "@/types";
-import { getSubtitleVtt } from "@/lib/store";
+import { getSubtitleVtt, getDebugLog } from "@/lib/store";
 import { EASE_OUT } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 
@@ -166,6 +166,8 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   const [hasEnded, setHasEnded] = useState(false);
   const [buffered, setBuffered] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [diagCopied, setDiagCopied] = useState(false);
   const [subStyle, setSubStyle] = useState<SubtitleStyle>(loadSubStyle);
   const [subMenuView, setSubMenuView] = useState<"tracks" | "settings">(
     "tracks",
@@ -235,7 +237,38 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     setIsPlaying(false);
     setShowControls(true);
     setParsedTracks(new Map());
+    setVideoError(null);
+    setDiagCopied(false);
   }, [lesson?.id]);
+
+  // Copy full diagnostics (player error + backend proxy log) to clipboard
+  const copyDiagnostics = useCallback(async () => {
+    let backendLog: string[] = [];
+    try {
+      backendLog = await getDebugLog();
+    } catch {
+      backendLog = ["(falha ao ler o log do backend)"];
+    }
+    const report = [
+      "=== CKOURSE DIAGNÓSTICO ===",
+      `lesson=${lesson?.id ?? "?"} title=${lesson?.title ?? "?"}`,
+      `videoPath=${lesson?.videoPath ?? "?"}`,
+      "",
+      "--- Erro do player ---",
+      videoError ?? "(sem erro capturado)",
+      "",
+      "--- Log do proxy (backend) ---",
+      ...backendLog,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(report);
+      setDiagCopied(true);
+      setTimeout(() => setDiagCopied(false), 2000);
+    } catch {
+      // Clipboard blocked — surface the text so it can be selected manually
+      window.prompt("Copie o diagnóstico abaixo:", report);
+    }
+  }, [lesson?.id, lesson?.title, lesson?.videoPath, videoError]);
 
   // Restore subtitle selection by language when lesson changes
   useEffect(() => {
@@ -745,14 +778,25 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
           const codeName = err
             ? ["", "MEDIA_ERR_ABORTED", "MEDIA_ERR_NETWORK", "MEDIA_ERR_DECODE", "MEDIA_ERR_SRC_NOT_SUPPORTED"][err.code] ?? `code=${err.code}`
             : "unknown";
-          console.error("[video] error", {
+          const details = {
             src: v.currentSrc,
             code: err?.code,
             codeName,
             message: err?.message,
             networkState: v.networkState,
             readyState: v.readyState,
-          });
+          };
+          console.error("[video] error", details);
+          setVideoError(
+            [
+              `codeName=${codeName}`,
+              `code=${err?.code ?? "?"}`,
+              `message=${err?.message || "-"}`,
+              `networkState=${v.networkState}`,
+              `readyState=${v.readyState}`,
+              `src=${v.currentSrc}`,
+            ].join("\n"),
+          );
         }}
       />
 
@@ -776,6 +820,36 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
             }}
             dangerouslySetInnerHTML={{ __html: activeCueText }}
           />
+        </div>
+      )}
+
+      {videoError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-6">
+          <div className="flex w-full max-w-md flex-col items-center gap-4 text-center">
+            <p className="font-heading text-base font-semibold text-white">
+              {t.videoError}
+            </p>
+            <pre className="max-h-40 w-full overflow-auto rounded-lg bg-white/5 p-3 text-left font-mono text-[11px] leading-relaxed text-white/70">
+              {videoError}
+            </pre>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={copyDiagnostics}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-sans text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                {diagCopied ? t.diagnosticsCopied : t.copyDiagnostics}
+              </button>
+              <button
+                onClick={() => {
+                  setVideoError(null);
+                  if (videoRef.current) videoRef.current.load();
+                }}
+                className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 font-sans text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+              >
+                {t.retry}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

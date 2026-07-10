@@ -25,14 +25,31 @@ pub fn handle(
 async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
     let file_id = match decode_path(request) {
         Some(p) => p,
-        None => return status_only(StatusCode::BAD_REQUEST),
+        None => {
+            crate::debug_log::log("gdrive: BAD_REQUEST (could not decode file id)");
+            return status_only(StatusCode::BAD_REQUEST);
+        }
     };
+
+    let incoming_range = request
+        .headers()
+        .get(header::RANGE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("<none>")
+        .to_string();
+    crate::debug_log::log(format!(
+        "gdrive: request file={} range={}",
+        file_id, incoming_range
+    ));
 
     let state = app.state::<DbState>();
 
     let mut token = match get_valid_token(&state).await {
         Ok(t) => t,
-        Err(_) => return status_only(StatusCode::UNAUTHORIZED),
+        Err(e) => {
+            crate::debug_log::log(format!("gdrive: UNAUTHORIZED (no valid token): {}", e));
+            return status_only(StatusCode::UNAUTHORIZED);
+        }
     };
 
     let client = Client::new();
@@ -103,7 +120,7 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
     let response = match res {
         Ok(r) => r,
         Err(e) => {
-            eprintln!("Google Drive Proxy Error: {}", e);
+            crate::debug_log::log(format!("gdrive: upstream request FAILED: {}", e));
             return status_only(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
@@ -124,11 +141,18 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         .and_then(|cr| cr.rsplit('/').next())
         .and_then(|s| s.trim().parse::<u64>().ok());
 
+    crate::debug_log::log(format!(
+        "gdrive: upstream status={} content-range={} sent-range={}",
+        upstream_status.as_u16(),
+        upstream_content_range.as_deref().unwrap_or("<none>"),
+        requested_range
+    ));
+
     // Read the (possibly clamped/partial) body into memory.
     let bytes = match response.bytes().await {
         Ok(b) => b.to_vec(),
         Err(e) => {
-            eprintln!("Google Drive Proxy Read Error: {}", e);
+            crate::debug_log::log(format!("gdrive: body read FAILED: {}", e));
             return status_only(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
@@ -167,6 +191,14 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
     } else {
         builder = builder.status(StatusCode::OK);
     }
+
+    crate::debug_log::log(format!(
+        "gdrive: responding status={} body_len={} total_size={} served_full={}",
+        if has_range_header || !served_full { 206 } else { 200 },
+        body_len,
+        total_size.map(|t| t.to_string()).unwrap_or_else(|| "?".into()),
+        served_full
+    ));
 
     builder
         .body(bytes)

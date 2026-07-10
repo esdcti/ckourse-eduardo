@@ -1,5 +1,6 @@
 mod commands;
 mod db;
+mod debug_log;
 mod parser;
 mod portable;
 mod subtitle;
@@ -96,6 +97,8 @@ pub fn run() {
             commands::backup_database_to_drive,
             commands::restore_database_from_drive,
             commands::check_drive_sync_status,
+            debug_log::get_debug_log,
+            debug_log::clear_debug_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

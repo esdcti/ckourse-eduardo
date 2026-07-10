@@ -145,6 +145,10 @@ export interface Translations {
   noLessonSelected: string;
   lessonComplete: string;
   replay: string;
+  videoError: string;
+  copyDiagnostics: string;
+  diagnosticsCopied: string;
+  retry: string;
   nextLesson: string;
   addANote: string;
   noNotesCapture: string;
@@ -464,6 +468,10 @@ const en: Translations = {
   noLessonSelected: "No lesson selected",
   lessonComplete: "Lesson Complete",
   replay: "Replay",
+  videoError: "This video could not be played",
+  copyDiagnostics: "Copy diagnostics",
+  diagnosticsCopied: "Copied!",
+  retry: "Retry",
   nextLesson: "Next Lesson",
   addANote: "Add a note...",
   noNotesCapture: "No notes yet. Start capturing your thoughts.",
@@ -769,6 +777,10 @@ const ptBR: Translations = {
   noLessonSelected: "Nenhuma aula selecionada",
   lessonComplete: "Aula Concluída",
   replay: "Repetir",
+  videoError: "Não foi possível reproduzir este vídeo",
+  copyDiagnostics: "Copiar diagnóstico",
+  diagnosticsCopied: "Copiado!",
+  retry: "Tentar novamente",
   nextLesson: "Próxima Aula",
   addANote: "Adicionar uma nota...",
   noNotesCapture: "Nenhuma nota ainda. Comece a registrar seus pensamentos.",
