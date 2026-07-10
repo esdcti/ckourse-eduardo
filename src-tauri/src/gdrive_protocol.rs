@@ -52,17 +52,32 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         }
     };
 
-    let client = Client::new();
+    let client = match Client::builder().build() {
+        Ok(c) => c,
+        Err(e) => {
+            crate::debug_log::log(format!("gdrive: falha ao criar HTTP client: {}", e));
+            return status_only(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
     let url = format!(
         "https://www.googleapis.com/drive/v3/files/{}?alt=media&acknowledgeAbuse=true",
         file_id
     );
 
     let mut headers = HeaderMap::new();
-    headers.insert(
-        reqwest::header::AUTHORIZATION,
-        HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
-    );
+    // NOTE: build the Authorization value fallibly. A stored token with a stray
+    // newline/whitespace makes `HeaderValue::from_str` fail; the previous
+    // `.unwrap()` panicked and, because the panic crossed the JNI/FFI boundary
+    // in the WebView request handler, it aborted (closed) the whole app.
+    match bearer_header(&token) {
+        Some(v) => {
+            headers.insert(reqwest::header::AUTHORIZATION, v);
+        }
+        None => {
+            crate::debug_log::log("gdrive: token de acesso invalido para header Authorization");
+            return status_only(StatusCode::UNAUTHORIZED);
+        }
+    }
 
     #[cfg(target_os = "android")]
     let max_chunk: u64 = 150 * 1024 * 1024; // 150 MB for Android (MediaPlayer issue workaround)
@@ -98,7 +113,9 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         }
     }
     
-    headers.insert(RANGE, HeaderValue::from_str(&requested_range).unwrap());
+    if let Ok(rv) = HeaderValue::from_str(&requested_range) {
+        headers.insert(RANGE, rv);
+    }
     let has_range_header = request.headers().contains_key(header::RANGE);
 
     let mut res = client.get(&url).headers(headers.clone()).send().await;
@@ -108,11 +125,10 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         if response.status() == 401 {
             if let Ok(new_token) = force_refresh_token(&state).await {
                 token = new_token;
-                headers.insert(
-                    reqwest::header::AUTHORIZATION,
-                    HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
-                );
-                res = client.get(&url).headers(headers).send().await;
+                if let Some(v) = bearer_header(&token) {
+                    headers.insert(reqwest::header::AUTHORIZATION, v);
+                    res = client.get(&url).headers(headers).send().await;
+                }
             }
         }
     }
@@ -205,6 +221,13 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
     builder
         .body(bytes)
         .unwrap_or_else(|_| status_only(StatusCode::INTERNAL_SERVER_ERROR))
+}
+
+/// Build a `Bearer` Authorization header value without panicking.
+/// Trims stray whitespace/newlines that would otherwise make `from_str` reject
+/// the value (control characters are not allowed in HTTP header values).
+fn bearer_header(token: &str) -> Option<HeaderValue> {
+    HeaderValue::from_str(&format!("Bearer {}", token.trim())).ok()
 }
 
 fn decode_path(request: &Request<Vec<u8>>) -> Option<String> {

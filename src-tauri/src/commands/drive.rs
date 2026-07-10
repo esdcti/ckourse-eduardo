@@ -152,7 +152,9 @@ pub(crate) async fn force_refresh_token(state: &tauri::State<'_, DbState>) -> Re
         (rt, cid, sec)
     };
 
-    let client = Client::new();
+    let client = Client::builder()
+        .build()
+        .map_err(|e| format!("Falha ao criar HTTP client: {}", e))?;
     let params = [
         ("client_id", client_id.as_str()),
         ("client_secret", client_secret.as_str()),
