@@ -6,6 +6,25 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ---
 
+## [1.10.19] - 2026-07-09
+
+### Adicionado
+- **Compatibilidade Mobile Completa (Android)**: App totalmente responsivo (AppShell, Dashboard e CourseDetail).
+- **Build Automático do APK**: Adicionada rotina de CI/CD no GitHub Actions para geração e atualização autônoma do app no Android.
+- **Sincronismo Inteligente (Smart Sync)**: Novo modelo *offline-first* via Google Drive. Utiliza de *merge* SQL (`ATTACH DATABASE`) garantindo que o progresso nunca seja sobrescrito incorretamente entre dispositivos.
+- Configuração das credenciais nativas padrão do Google Drive, dispensando chaves manuais em todas as instalações.
+
+### Corrigido
+- **Streaming de Vídeos do Google Drive (Mobile/Desktop)**: 
+  - Correção total das falhas de reprodução no Android WebView. 
+  - Implementação de um buffer em memória condicional (150 MB no Android vs 5 MB no Desktop) para desviar dos bugs do `MediaPlayer` nativo em cursos grandes.
+  - Substituição inteligente do código de status `206 Partial Content` por `200 OK` quando necessário na ausência de headers `Range`.
+  - Injeção forçada do formato `Content-Type: video/mp4` para as respostas do proxy não serem rejeitadas no mobile.
+  - Suporte ao formato de requests `bytes=-N` (range invertido).
+- **Tratamento de Fechamento**: Prevenção de loop ou crash na saída do app devido ao atraso da rotina de salvamento do Smart Sync.
+- **Ambiente de Build**: Correções em paths absolutos do NodeJS no Android e reparos nos imports do `tauri-plugin-opener`.
+- **Restauração de Dados**: Corrigido bug de concorrência (`MutexGuard`) e ambiguidade de colunas SQL durantes os testes de restauração de banco do Google Drive.
+
 ## [1.9.0] - 2026-07-08
 
 ### Adicionado
