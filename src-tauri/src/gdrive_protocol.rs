@@ -125,30 +125,67 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         }
     };
 
-    let upstream_status = response.status();
+    // NOTE: This restores the known-good 1.10.19 response behavior. A previous
+    // attempt to return 206 + Content-Range for the initial (range-less)
+    // request caused Android's media stack to mishandle the response and the
+    // app to close. Keep this path conservative; iterate on large-video
+    // playback only with real device logs.
+    let mut status =
+        StatusCode::from_u16(response.status().as_u16()).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
 
-    // Capture the upstream Content-Range before consuming the response body
-    // (reqwest's `bytes()` takes ownership of the response).
+    // Capture upstream Content-Range for diagnostics before consuming the body.
     let upstream_content_range = response
         .headers()
         .get(reqwest::header::CONTENT_RANGE)
         .and_then(|v| v.to_str().ok())
         .map(|s| s.to_string());
 
-    // Total file size = denominator of "bytes start-end/total".
-    let total_size = upstream_content_range
-        .as_deref()
-        .and_then(|cr| cr.rsplit('/').next())
-        .and_then(|s| s.trim().parse::<u64>().ok());
+    let mut builder = Response::builder()
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+        .header(header::ACCEPT_RANGES, "bytes")
+        .header(header::CONTENT_TYPE, "video/mp4");
 
-    crate::debug_log::log(format!(
-        "gdrive: upstream status={} content-range={} sent-range={}",
-        upstream_status.as_u16(),
-        upstream_content_range.as_deref().unwrap_or("<none>"),
-        requested_range
-    ));
+    if !has_range_header && status == StatusCode::PARTIAL_CONTENT {
+        status = StatusCode::OK;
+    }
 
-    // Read the (possibly clamped/partial) body into memory.
+    builder = builder.status(status);
+
+    let mut content_length_set = false;
+
+    if !has_range_header && status == StatusCode::OK {
+        // Provide the full file size in Content-Length for a 200 OK response.
+        if let Some(cr) = response.headers().get(reqwest::header::CONTENT_RANGE) {
+            if let Ok(cr_str) = cr.to_str() {
+                if let Some(total_size_str) = cr_str.split('/').last() {
+                    if let Ok(total_size) = total_size_str.parse::<u64>() {
+                        builder = builder.header(header::CONTENT_LENGTH, total_size.to_string());
+                        content_length_set = true;
+                    }
+                }
+            }
+        }
+    }
+
+    let headers_to_copy = [
+        reqwest::header::CONTENT_LENGTH,
+        reqwest::header::CONTENT_RANGE,
+    ];
+
+    for h in headers_to_copy {
+        if let Some(val) = response.headers().get(&h) {
+            if let Ok(v) = tauri::http::HeaderValue::from_bytes(val.as_bytes()) {
+                if h == reqwest::header::CONTENT_RANGE && !has_range_header {
+                    continue; // Do not send Content-Range for a 200 OK
+                }
+                if h == reqwest::header::CONTENT_LENGTH && content_length_set {
+                    continue; // Already set to full size
+                }
+                builder = builder.header(h.as_str(), v);
+            }
+        }
+    }
+
     let bytes = match response.bytes().await {
         Ok(b) => b.to_vec(),
         Err(e) => {
@@ -156,48 +193,13 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
             return status_only(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
-    let body_len = bytes.len() as u64;
-
-    // Content-Length MUST match the number of bytes we actually return.
-    // Previously, for a range-less request we advertised the *full* file size
-    // while only sending a clamped chunk (150 MB on Android). Small videos
-    // happened to fit in one chunk and played fine, but larger videos left the
-    // player waiting for bytes that never arrived — the reason mobile playback
-    // only worked for short courses.
-    let mut builder = Response::builder()
-        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-        .header(header::ACCEPT_RANGES, "bytes")
-        .header(header::CONTENT_TYPE, "video/mp4")
-        .header(header::CONTENT_LENGTH, body_len.to_string());
-
-    // Did this single response cover the entire file?
-    let served_full = match total_size {
-        Some(total) => body_len >= total,
-        None => upstream_status.as_u16() < 300,
-    };
-
-    if has_range_header || !served_full {
-        // Partial content: advertise the exact byte range so the player knows
-        // there is more and issues follow-up Range requests.
-        builder = builder.status(StatusCode::PARTIAL_CONTENT);
-        if let Some(cr) = &upstream_content_range {
-            builder = builder.header(header::CONTENT_RANGE, cr.as_str());
-        } else if let (Some(total), true) = (total_size, body_len > 0) {
-            builder = builder.header(
-                header::CONTENT_RANGE,
-                format!("bytes 0-{}/{}", body_len - 1, total),
-            );
-        }
-    } else {
-        builder = builder.status(StatusCode::OK);
-    }
 
     crate::debug_log::log(format!(
-        "gdrive: responding status={} body_len={} total_size={} served_full={}",
-        if has_range_header || !served_full { 206 } else { 200 },
-        body_len,
-        total_size.map(|t| t.to_string()).unwrap_or_else(|| "?".into()),
-        served_full
+        "gdrive: responding status={} body_len={} sent-range={} upstream-content-range={}",
+        status.as_u16(),
+        bytes.len(),
+        requested_range,
+        upstream_content_range.as_deref().unwrap_or("<none>")
     ));
 
     builder
