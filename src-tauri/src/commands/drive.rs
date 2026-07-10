@@ -769,17 +769,32 @@ pub async fn cache_drive_video(
     let mut offset: u64 = 0;
     let mut total: Option<u64> = None;
     let mut refreshed = false;
+    let mut attempts: u32 = 0;
+    const MAX_ATTEMPTS: u32 = 4;
 
     loop {
         let range = format!("bytes={}-{}", offset, offset + CHUNK - 1);
         let bearer = format!("Bearer {}", token.trim());
-        let resp = client
+
+        // Send the request; retry transient network failures for this chunk.
+        let resp = match client
             .get(&url)
             .header(reqwest::header::AUTHORIZATION, bearer)
             .header(reqwest::header::RANGE, range)
             .send()
             .await
-            .map_err(|e| e.to_string())?;
+        {
+            Ok(r) => r,
+            Err(e) => {
+                attempts += 1;
+                if attempts >= MAX_ATTEMPTS {
+                    let _ = tokio::fs::remove_file(&tmp_path).await;
+                    return Err(format!("Falha de rede ao baixar vídeo: {}", e));
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(500 * attempts as u64)).await;
+                continue; // retry same offset (nothing was written)
+            }
+        };
 
         if resp.status() == reqwest::StatusCode::UNAUTHORIZED && !refreshed {
             refreshed = true;
@@ -796,16 +811,34 @@ pub async fn cache_drive_video(
         }
 
         let has_content_range = resp.headers().contains_key(reqwest::header::CONTENT_RANGE);
+        let chunk_total = resp
+            .headers()
+            .get(reqwest::header::CONTENT_RANGE)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.rsplit('/').next())
+            .and_then(|s| s.trim().parse::<u64>().ok());
+
+        // Read the body; retry transient read failures ("error decoding
+        // response body" = connection dropped/stalled mid-download).
+        let bytes = match resp.bytes().await {
+            Ok(b) => b,
+            Err(e) => {
+                attempts += 1;
+                if attempts >= MAX_ATTEMPTS {
+                    let _ = tokio::fs::remove_file(&tmp_path).await;
+                    return Err(format!("Falha ao baixar o vídeo (corpo): {}", e));
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(500 * attempts as u64)).await;
+                continue; // retry same offset (nothing was written)
+            }
+        };
+
+        // Chunk succeeded: reset the retry counter.
+        attempts = 0;
         if total.is_none() {
-            total = resp
-                .headers()
-                .get(reqwest::header::CONTENT_RANGE)
-                .and_then(|v| v.to_str().ok())
-                .and_then(|s| s.rsplit('/').next())
-                .and_then(|s| s.trim().parse::<u64>().ok());
+            total = chunk_total;
         }
 
-        let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
         let n = bytes.len() as u64;
         if n > 0 {
             file.write_all(&bytes).await.map_err(|e| e.to_string())?;
