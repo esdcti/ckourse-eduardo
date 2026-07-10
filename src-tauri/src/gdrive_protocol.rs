@@ -52,7 +52,16 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         }
     };
 
-    let client = match Client::builder().build() {
+    // The whole request (including downloading the chunk body) MUST finish well
+    // within wry's Android WebView timeout (~10s). If it doesn't, wry panics
+    // with `unwrap() on Err(Timeout)` and, because that panic cannot unwind
+    // across the JNI/FFI boundary, it aborts (closes) the whole app. So we cap
+    // our own request at 8s: if Google is slow we return an error response fast
+    // instead of letting wry time out and crash.
+    let client = match Client::builder()
+        .timeout(std::time::Duration::from_secs(8))
+        .build()
+    {
         Ok(c) => c,
         Err(e) => {
             crate::debug_log::log(format!("gdrive: falha ao criar HTTP client: {}", e));
@@ -79,14 +88,19 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         }
     }
 
+    // Keep chunks small so each response is delivered within wry's ~10s Android
+    // timeout. The previous 150 MB "workaround" took far longer than 10s to
+    // download on mobile networks, which made wry time out and crash the app.
+    // The WebView streams the video by issuing follow-up Range requests, so a
+    // small chunk is enough and avoids both the timeout crash and OOM.
     #[cfg(target_os = "android")]
-    let max_chunk: u64 = 150 * 1024 * 1024; // 150 MB for Android (MediaPlayer issue workaround)
+    let max_chunk: u64 = 4 * 1024 * 1024; // 4 MB for Android
     #[cfg(not(target_os = "android"))]
-    let max_chunk: u64 = 5 * 1024 * 1024; // 5 MB for Desktop (saves memory)
+    let max_chunk: u64 = 5 * 1024 * 1024; // 5 MB for Desktop
     #[cfg(target_os = "android")]
-    let mut requested_range = "bytes=0-157286399".to_string(); // Default to 150 MB to prevent OOM
+    let mut requested_range = "bytes=0-4194303".to_string(); // 4 MB
     #[cfg(not(target_os = "android"))]
-    let mut requested_range = "bytes=0-5242879".to_string(); // Default to 5 MB to prevent OOM
+    let mut requested_range = "bytes=0-5242879".to_string(); // 5 MB
 
     // Forward and clamp the Range header from the frontend
     if let Some(range_header) = request.headers().get(header::RANGE) {

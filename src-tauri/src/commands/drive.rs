@@ -153,6 +153,7 @@ pub(crate) async fn force_refresh_token(state: &tauri::State<'_, DbState>) -> Re
     };
 
     let client = Client::builder()
+        .timeout(std::time::Duration::from_secs(4))
         .build()
         .map_err(|e| format!("Falha ao criar HTTP client: {}", e))?;
     let params = [
