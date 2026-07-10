@@ -25,24 +25,62 @@ const MAX_CHUNK_SIZE: u64 = 150 * 1024 * 1024; // 150 MB for Android (MediaPlaye
 const MAX_CHUNK_SIZE: u64 = 5 * 1024 * 1024; // 5 MB for Desktop (saves memory)
 
 fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
+    let raw_uri_path = request.uri().path().to_string();
+    let range_dbg = request
+        .headers()
+        .get(header::RANGE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("<none>")
+        .to_string();
+
     let path = match decode_path(request) {
         Some(p) => p,
-        None => return status_only(StatusCode::BAD_REQUEST),
+        None => {
+            crate::debug_log::log(format!(
+                "stream: BAD_REQUEST could not decode path raw={}",
+                raw_uri_path
+            ));
+            return status_only(StatusCode::BAD_REQUEST);
+        }
     };
 
+    crate::debug_log::log(format!(
+        "stream: request method={} decoded_path={} range={}",
+        request.method(),
+        path.display(),
+        range_dbg
+    ));
+
     if !path.is_file() {
+        crate::debug_log::log(format!(
+            "stream: NOT_FOUND is_file=false path={}",
+            path.display()
+        ));
         return status_only(StatusCode::NOT_FOUND);
     }
 
     let mut file = match fs::File::open(&path) {
         Ok(f) => f,
-        Err(_) => return status_only(StatusCode::NOT_FOUND),
+        Err(e) => {
+            crate::debug_log::log(format!("stream: NOT_FOUND open failed: {} path={}", e, path.display()));
+            return status_only(StatusCode::NOT_FOUND);
+        }
     };
 
     let file_size = match file.metadata() {
         Ok(m) => m.len(),
-        Err(_) => return status_only(StatusCode::INTERNAL_SERVER_ERROR),
+        Err(e) => {
+            crate::debug_log::log(format!("stream: metadata failed: {}", e));
+            return status_only(StatusCode::INTERNAL_SERVER_ERROR);
+        }
     };
+
+    crate::debug_log::log(format!(
+        "stream: serving path={} size={} range={}",
+        path.display(),
+        file_size,
+        range_dbg
+    ));
 
     let mime = guess_mime(&path);
 
@@ -59,7 +97,13 @@ fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
 
     if let Some(range_header) = request.headers().get(header::RANGE) {
         return match parse_range(range_header, file_size) {
-            Some((start, end)) => serve_range(&mut file, start, end, file_size, mime),
+            Some((start, end)) => {
+                crate::debug_log::log(format!(
+                    "stream: 206 range {}-{}/{}",
+                    start, end, file_size
+                ));
+                serve_range(&mut file, start, end, file_size, mime)
+            }
             None => Response::builder()
                 .status(StatusCode::RANGE_NOT_SATISFIABLE)
                 .header(header::CONTENT_RANGE, format!("bytes */{}", file_size))
@@ -74,6 +118,11 @@ fn serve(request: &Request<Vec<u8>>) -> Response<Vec<u8>> {
     let read_len = std::cmp::min(file_size, MAX_CHUNK_SIZE) as usize;
     let mut buf = vec![0u8; read_len];
     let _ = file.read_exact(&mut buf);
+
+    crate::debug_log::log(format!(
+        "stream: 200 no-range body_len={} content_length={} mime={}",
+        read_len, file_size, mime
+    ));
 
     Response::builder()
         .status(StatusCode::OK)
