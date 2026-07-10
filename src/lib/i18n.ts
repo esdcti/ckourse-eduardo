@@ -149,6 +149,7 @@ export interface Translations {
   copyDiagnostics: string;
   diagnosticsCopied: string;
   retry: string;
+  preparingVideo: string;
   nextLesson: string;
   addANote: string;
   noNotesCapture: string;
@@ -472,6 +473,7 @@ const en: Translations = {
   copyDiagnostics: "Copy diagnostics",
   diagnosticsCopied: "Copied!",
   retry: "Retry",
+  preparingVideo: "Preparing video...",
   nextLesson: "Next Lesson",
   addANote: "Add a note...",
   noNotesCapture: "No notes yet. Start capturing your thoughts.",
@@ -781,6 +783,7 @@ const ptBR: Translations = {
   copyDiagnostics: "Copiar diagnóstico",
   diagnosticsCopied: "Copiado!",
   retry: "Tentar novamente",
+  preparingVideo: "Preparando vídeo...",
   nextLesson: "Próxima Aula",
   addANote: "Adicionar uma nota...",
   noNotesCapture: "Nenhuma nota ainda. Comece a registrar seus pensamentos.",

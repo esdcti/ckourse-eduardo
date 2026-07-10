@@ -97,6 +97,8 @@ pub fn run() {
             commands::backup_database_to_drive,
             commands::restore_database_from_drive,
             commands::check_drive_sync_status,
+            commands::cache_drive_video,
+            commands::get_runtime_platform,
             debug_log::get_debug_log,
             debug_log::clear_debug_log,
         ])

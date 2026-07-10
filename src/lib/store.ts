@@ -325,3 +325,23 @@ export async function getDebugLog(): Promise<string[]> {
 export async function clearDebugLog(): Promise<void> {
   await invoke("clear_debug_log");
 }
+
+// --- Platform / mobile video caching ---
+
+let runtimePlatformCache: string | null = null;
+
+export async function getRuntimePlatform(): Promise<string> {
+  if (runtimePlatformCache) return runtimePlatformCache;
+  const p = await invoke<string>("get_runtime_platform");
+  runtimePlatformCache = p;
+  return p;
+}
+
+/**
+ * Downloads a Google Drive video to a local cache file and returns its path.
+ * Used on Android, where streaming a progressive MP4 over the gdrive proxy is
+ * unreliable; playing from a local file is instant and robust.
+ */
+export async function cacheDriveVideo(fileId: string): Promise<string> {
+  return invoke<string>("cache_drive_video", { fileId });
+}

@@ -685,3 +685,156 @@ pub async fn restore_database_from_drive(
 
     Ok("Backup restaurado com sucesso! Atualize o app para ver os dados.".to_string())
 }
+
+/// Returns the runtime platform so the frontend can adapt behavior
+/// (e.g. cache-then-play for cloud videos on Android).
+#[tauri::command]
+pub fn get_runtime_platform() -> String {
+    #[cfg(target_os = "android")]
+    {
+        "android".to_string()
+    }
+    #[cfg(target_os = "ios")]
+    {
+        "ios".to_string()
+    }
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        "desktop".to_string()
+    }
+}
+
+/// Downloads a Google Drive video to a local cache file and returns its path.
+///
+/// On Android the WebView cannot reliably stream a progressive MP4 (moov atom
+/// at the end of the file) over the `gdrive://` proxy: every seek costs a
+/// network round-trip and the player loops on the metadata read until it fails
+/// with MEDIA_ERR_SRC_NOT_SUPPORTED. Downloading the file once and serving it
+/// from the local `stream://` protocol makes range reads instant and reliable.
+///
+/// The download runs inside a Tauri command (not the WebView request handler),
+/// so it is not subject to wry's ~10s response timeout. Data is written to disk
+/// in chunks to keep memory usage bounded.
+#[tauri::command]
+pub async fn cache_drive_video(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, DbState>,
+    file_id: String,
+) -> Result<String, String> {
+    use tauri::Manager;
+    use tokio::io::AsyncWriteExt;
+
+    // Google Drive file ids are limited to url-safe characters. Validate to
+    // avoid any path traversal via the file name.
+    if file_id.is_empty()
+        || !file_id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return Err("ID de arquivo inválido".to_string());
+    }
+
+    let cache_dir = app
+        .path()
+        .app_cache_dir()
+        .map_err(|e| e.to_string())?
+        .join("video-cache");
+    std::fs::create_dir_all(&cache_dir).map_err(|e| e.to_string())?;
+
+    let final_path = cache_dir.join(format!("{}.mp4", file_id));
+
+    // Cache hit: a fully downloaded file already exists.
+    if let Ok(meta) = std::fs::metadata(&final_path) {
+        if meta.len() > 0 {
+            return Ok(final_path.to_string_lossy().to_string());
+        }
+    }
+
+    let tmp_path = cache_dir.join(format!("{}.part", file_id));
+
+    let mut token = get_valid_token(&state).await?;
+    let client = Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}?alt=media&acknowledgeAbuse=true",
+        file_id
+    );
+
+    const CHUNK: u64 = 8 * 1024 * 1024; // 8 MB per request keeps memory bounded
+    let mut file = tokio::fs::File::create(&tmp_path)
+        .await
+        .map_err(|e| e.to_string())?;
+    let mut offset: u64 = 0;
+    let mut total: Option<u64> = None;
+    let mut refreshed = false;
+
+    loop {
+        let range = format!("bytes={}-{}", offset, offset + CHUNK - 1);
+        let bearer = format!("Bearer {}", token.trim());
+        let resp = client
+            .get(&url)
+            .header(reqwest::header::AUTHORIZATION, bearer)
+            .header(reqwest::header::RANGE, range)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if resp.status() == reqwest::StatusCode::UNAUTHORIZED && !refreshed {
+            refreshed = true;
+            token = force_refresh_token(&state).await?;
+            continue;
+        }
+
+        if !resp.status().is_success() {
+            let _ = tokio::fs::remove_file(&tmp_path).await;
+            return Err(format!(
+                "Falha ao baixar vídeo (HTTP {})",
+                resp.status().as_u16()
+            ));
+        }
+
+        let has_content_range = resp.headers().contains_key(reqwest::header::CONTENT_RANGE);
+        if total.is_none() {
+            total = resp
+                .headers()
+                .get(reqwest::header::CONTENT_RANGE)
+                .and_then(|v| v.to_str().ok())
+                .and_then(|s| s.rsplit('/').next())
+                .and_then(|s| s.trim().parse::<u64>().ok());
+        }
+
+        let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
+        let n = bytes.len() as u64;
+        if n > 0 {
+            file.write_all(&bytes).await.map_err(|e| e.to_string())?;
+            offset += n;
+        }
+
+        // Stop conditions.
+        if !has_content_range {
+            break; // server returned the whole file in one response
+        }
+        if let Some(t) = total {
+            if offset >= t {
+                break;
+            }
+        }
+        if n == 0 || n < CHUNK {
+            break; // reached EOF
+        }
+    }
+
+    file.flush().await.map_err(|e| e.to_string())?;
+    drop(file);
+
+    std::fs::rename(&tmp_path, &final_path).map_err(|e| e.to_string())?;
+
+    crate::debug_log::log(format!(
+        "cache_drive_video: {} baixado ({} bytes)",
+        file_id, offset
+    ));
+
+    Ok(final_path.to_string_lossy().to_string())
+}

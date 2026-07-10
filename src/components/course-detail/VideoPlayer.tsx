@@ -28,7 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatVideoTime } from "@/lib/format";
 import type { Lesson, Subtitle, VideoPlayerHandle } from "@/types";
-import { getSubtitleVtt, getDebugLog } from "@/lib/store";
+import { getSubtitleVtt, getDebugLog, getRuntimePlatform, cacheDriveVideo } from "@/lib/store";
 import { EASE_OUT } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 
@@ -215,18 +215,54 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   const playbackSpeedRef = useRef(playbackSpeed);
 
   const [videoSrc, setVideoSrc] = useState<string | undefined>();
+  const [preparing, setPreparing] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+    setVideoError(null);
+
     if (!lesson) {
       setVideoSrc(undefined);
       return;
     }
-    if (lesson.videoPath.startsWith("gdrive://")) {
-      const fileId = lesson.videoPath.replace("gdrive://", "");
-      setVideoSrc(convertFileSrc(fileId, "gdrive"));
-    } else {
-      setVideoSrc(convertFileSrc(lesson.videoPath, "stream"));
+
+    const path = lesson.videoPath;
+
+    if (!path.startsWith("gdrive://")) {
+      setVideoSrc(convertFileSrc(path, "stream"));
+      return;
     }
+
+    const fileId = path.replace("gdrive://", "");
+
+    (async () => {
+      try {
+        const platform = await getRuntimePlatform();
+        if (cancelled) return;
+
+        // Mobile WebViews can't reliably stream a progressive MP4 over the
+        // gdrive proxy (each seek is a network round-trip and the player loops
+        // on the metadata read). Download once and play from the local file.
+        if (platform === "android" || platform === "ios") {
+          setPreparing(true);
+          const localPath = await cacheDriveVideo(fileId);
+          if (cancelled) return;
+          setVideoSrc(convertFileSrc(localPath, "stream"));
+        } else {
+          setVideoSrc(convertFileSrc(fileId, "gdrive"));
+        }
+      } catch (e) {
+        if (cancelled) return;
+        setVideoSrc(undefined);
+        setVideoError(`prepare failed: ${String(e)}`);
+      } finally {
+        if (!cancelled) setPreparing(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [lesson?.videoPath]);
 
   // Reset state when lesson changes
@@ -729,10 +765,34 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   if (!videoSrc) {
     return (
       <div className="relative overflow-hidden rounded-xl border border-border bg-black">
-        <div className="flex aspect-video items-center justify-center bg-card">
-          <p className="font-sans text-sm text-muted-foreground">
-            {t.noLessonSelected}
-          </p>
+        <div className="flex aspect-video flex-col items-center justify-center gap-4 bg-card px-6 text-center">
+          {preparing ? (
+            <>
+              <div className="size-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-primary" />
+              <p className="font-sans text-sm text-muted-foreground">
+                {t.preparingVideo}
+              </p>
+            </>
+          ) : videoError ? (
+            <>
+              <p className="font-heading text-sm font-semibold text-foreground">
+                {t.videoError}
+              </p>
+              <pre className="max-h-32 w-full max-w-md overflow-auto rounded bg-white/5 p-2 text-left font-mono text-[11px] text-muted-foreground">
+                {videoError}
+              </pre>
+              <button
+                onClick={copyDiagnostics}
+                className="rounded-lg bg-primary px-4 py-2 font-sans text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                {diagCopied ? t.diagnosticsCopied : t.copyDiagnostics}
+              </button>
+            </>
+          ) : (
+            <p className="font-sans text-sm text-muted-foreground">
+              {t.noLessonSelected}
+            </p>
+          )}
         </div>
       </div>
     );
