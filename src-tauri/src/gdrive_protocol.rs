@@ -107,7 +107,8 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
 
     let mut builder = Response::builder()
         .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-        .header(header::ACCEPT_RANGES, "bytes");
+        .header(header::ACCEPT_RANGES, "bytes")
+        .header(header::CONTENT_TYPE, "video/mp4");
 
     if !has_range_header && status == StatusCode::PARTIAL_CONTENT {
         status = StatusCode::OK;
@@ -132,7 +133,6 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
     }
 
     let headers_to_copy = [
-        reqwest::header::CONTENT_TYPE,
         reqwest::header::CONTENT_LENGTH,
         reqwest::header::CONTENT_RANGE,
     ];
