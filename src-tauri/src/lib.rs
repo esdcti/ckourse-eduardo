@@ -1,6 +1,7 @@
 mod commands;
 mod db;
 mod debug_log;
+mod mp4_faststart;
 mod parser;
 mod portable;
 mod subtitle;

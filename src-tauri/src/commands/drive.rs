@@ -746,6 +746,9 @@ pub async fn cache_drive_video(
     // Cache hit: a fully downloaded file already exists.
     if let Ok(meta) = std::fs::metadata(&final_path) {
         if meta.len() > 0 {
+            // Idempotent: fixes files cached before faststart existed; a no-op
+            // for already-faststart files (just a quick header scan).
+            faststart_in_place(&final_path);
             return Ok(final_path.to_string_lossy().to_string());
         }
     }
@@ -869,5 +872,23 @@ pub async fn cache_drive_video(
         file_id, offset
     ));
 
+    // Move the MP4 index (moov) to the front so Android's WebView can play it.
+    faststart_in_place(&final_path);
+
     Ok(final_path.to_string_lossy().to_string())
+}
+
+/// Rewrites an MP4 to "faststart" in place, logging the outcome. Never fails the
+/// caller: on error we keep the original file and let playback proceed/fail.
+fn faststart_in_place(path: &std::path::Path) {
+    match crate::mp4_faststart::ensure_faststart(path) {
+        Ok(true) => crate::debug_log::log("faststart: moov movido para o inicio do arquivo"),
+        Ok(false) => {
+            crate::debug_log::log("faststart: nao necessario (ja faststart ou nao aplicavel)")
+        }
+        Err(e) => crate::debug_log::log(format!(
+            "faststart: falhou ({}) - usando arquivo original",
+            e
+        )),
+    }
 }
