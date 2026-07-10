@@ -47,8 +47,14 @@ async fn serve(app: tauri::AppHandle, request: &Request<Vec<u8>>) -> Response<Ve
         HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
     );
 
-    let max_chunk = 5 * 1024 * 1024; // 5 MB
-    let mut requested_range = "bytes=0-5242879".to_string(); // Default to first chunk to prevent OOM
+    #[cfg(target_os = "android")]
+    let max_chunk: u64 = 150 * 1024 * 1024; // 150 MB for Android (MediaPlayer issue workaround)
+    #[cfg(not(target_os = "android"))]
+    let max_chunk: u64 = 5 * 1024 * 1024; // 5 MB for Desktop (saves memory)
+    #[cfg(target_os = "android")]
+    let mut requested_range = "bytes=0-157286399".to_string(); // Default to 150 MB to prevent OOM
+    #[cfg(not(target_os = "android"))]
+    let mut requested_range = "bytes=0-5242879".to_string(); // Default to 5 MB to prevent OOM
 
     // Forward and clamp the Range header from the frontend
     if let Some(range_header) = request.headers().get(header::RANGE) {
