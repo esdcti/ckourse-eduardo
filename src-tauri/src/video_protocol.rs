@@ -141,25 +141,28 @@ fn serve_range(
     file_size: u64,
     mime: &'static str,
 ) -> Response<Vec<u8>> {
-    let length = end - start + 1;
-    let mut buf = vec![0u8; length as usize];
+    let header_length = end - start + 1;
+    let read_length = std::cmp::min(header_length, MAX_CHUNK_SIZE);
+    let mut buf = vec![0u8; read_length as usize];
     if file.seek(SeekFrom::Start(start)).is_err() {
         return status_only(StatusCode::INTERNAL_SERVER_ERROR);
     }
+    // We only read up to read_length. read_exact won't fail because buf is sized to read_length.
     if file.read_exact(&mut buf).is_err() {
         return status_only(StatusCode::INTERNAL_SERVER_ERROR);
     }
     Response::builder()
         .status(StatusCode::PARTIAL_CONTENT)
         .header(header::CONTENT_TYPE, mime)
-        .header(header::CONTENT_LENGTH, length.to_string())
+        // Lie to ExoPlayer: claim we're sending the full requested range
+        .header(header::CONTENT_LENGTH, header_length.to_string())
         .header(
             header::CONTENT_RANGE,
             format!("bytes {}-{}/{}", start, end, file_size),
         )
         .header(header::ACCEPT_RANGES, "bytes")
         .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-        .body(buf)
+        .body(buf) // But only send up to MAX_CHUNK_SIZE bytes
         .unwrap_or_else(|_| status_only(StatusCode::INTERNAL_SERVER_ERROR))
 }
 
@@ -190,21 +193,17 @@ fn parse_range(header_value: &HeaderValue, file_size: u64) -> Option<(u64, u64)>
         }
         let start = file_size - suffix;
         let end = file_size - 1;
-        let clamped_start = if end - start + 1 > MAX_CHUNK_SIZE { end - MAX_CHUNK_SIZE + 1 } else { start };
-        return Some((clamped_start, end));
+        return Some((start, end));
     }
 
     let start: u64 = a.parse().ok()?;
-    let mut end: u64 = if b.is_empty() {
+    let end: u64 = if b.is_empty() {
         file_size.checked_sub(1)?
     } else {
         b.parse().ok()?
     };
     if start > end || end >= file_size {
         return None;
-    }
-    if end - start + 1 > MAX_CHUNK_SIZE {
-        end = start + MAX_CHUNK_SIZE - 1;
     }
     Some((start, end))
 }
