@@ -20,7 +20,7 @@ pub fn handle(
 }
 
 #[cfg(target_os = "android")]
-const MAX_CHUNK_SIZE: u64 = 150 * 1024 * 1024; // 150 MB for Android (MediaPlayer issue workaround)
+const MAX_CHUNK_SIZE: u64 = 2 * 1024 * 1024; // 2 MB for Android (Avoid IPC OOM and Decoder errors)
 #[cfg(not(target_os = "android"))]
 const MAX_CHUNK_SIZE: u64 = 5 * 1024 * 1024; // 5 MB for Desktop (saves memory)
 
