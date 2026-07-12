@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatVideoTime } from "@/lib/format";
 import type { Lesson, Subtitle, VideoPlayerHandle } from "@/types";
-import { getSubtitleVtt, getDebugLog, getRuntimePlatform, cacheDriveVideo } from "@/lib/store";
+import { getSubtitleVtt, getDebugLog, getRuntimePlatform } from "@/lib/store";
 import { EASE_OUT } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 
@@ -257,7 +257,6 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
 
     (async () => {
       try {
-        const platform = await getRuntimePlatform();
         if (cancelled) return;
 
         // Use the native local TCP proxy for ALL gdrive videos (desktop and mobile)
