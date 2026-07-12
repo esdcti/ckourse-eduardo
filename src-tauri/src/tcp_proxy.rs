@@ -4,8 +4,8 @@ use tokio::net::{TcpListener, TcpStream};
 use reqwest::Client;
 use tauri::Manager;
 
-use crate::db::{self, DbState};
-use crate::commands::drive::force_refresh_token;
+use crate::db::DbState;
+use crate::commands::drive::get_valid_token;
 
 static PROXY_PORT: AtomicU16 = AtomicU16::new(0);
 
@@ -75,9 +75,7 @@ async fn handle_connection(mut stream: TcpStream, client: Client, app: tauri::Ap
     }
 
     let state = app.state::<DbState>();
-    let mut token = db::get_kv(&state.0, "drive_token")
-        .map_err(|e| e.to_string())?
-        .unwrap_or_default();
+    let mut token = get_valid_token(&state).await?;
     
     let url = format!("https://www.googleapis.com/drive/v3/files/{}?alt=media", file_id);
     
@@ -91,7 +89,9 @@ async fn handle_connection(mut stream: TcpStream, client: Client, app: tauri::Ap
     let mut resp = req.send().await.map_err(|e| e.to_string())?;
     
     if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
-        token = force_refresh_token(&state).await?;
+        // Just call get_valid_token again (or it might have been force_refresh_token in original logic, but wait)
+        // If we want to force refresh:
+        token = crate::commands::drive::force_refresh_token(&state).await?;
         
         let mut req = client.get(&url)
             .header(reqwest::header::AUTHORIZATION, format!("Bearer {}", token));
