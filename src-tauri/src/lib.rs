@@ -7,6 +7,7 @@ mod portable;
 mod subtitle;
 mod video_protocol;
 mod gdrive_protocol;
+mod tcp_proxy;
 
 use db::DbState;
 use tauri::Manager;
@@ -46,6 +47,12 @@ pub fn run() {
 
             // Store the app_data_dir for later use (changing custom dir)
             app.manage(AppDataDir(app_data_dir));
+
+            // Start TCP Proxy for native video streaming bypass
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                tcp_proxy::start_proxy(handle).await;
+            });
 
             Ok(())
         })
@@ -100,6 +107,7 @@ pub fn run() {
             commands::check_drive_sync_status,
             commands::cache_drive_video,
             commands::get_runtime_platform,
+            tcp_proxy::get_proxy_port,
             debug_log::get_debug_log,
             debug_log::clear_debug_log,
         ])

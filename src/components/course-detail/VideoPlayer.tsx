@@ -7,7 +7,7 @@ import {
   forwardRef,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import {
   PlayIcon as Play,
@@ -260,18 +260,13 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
         const platform = await getRuntimePlatform();
         if (cancelled) return;
 
-        // Mobile WebViews can't reliably stream a progressive MP4 over the
-        // gdrive proxy (each seek is a network round-trip and the player loops
-        // on the metadata read). Download once and play from the local file.
-        if (platform === "android" || platform === "ios") {
-          setPreparing(true);
-          const localPath = await cacheDriveVideo(fileId);
-          if (cancelled) return;
-          // Use Tauri's native asset protocol on mobile to completely bypass Rust IPC buffer limits and ExoPlayer chunking bugs
-          setVideoSrc(convertFileSrc(localPath, "asset"));
-        } else {
-          setVideoSrc(convertFileSrc(fileId, "gdrive"));
-        }
+        // Use the native local TCP proxy for ALL gdrive videos (desktop and mobile)
+        // This completely bypasses Tauri IPC limits and Android WebView bugs!
+        const port = await invoke<number>("get_proxy_port");
+        if (cancelled) return;
+        
+        setVideoSrc(`http://127.0.0.1:${port}/stream?id=${fileId}`);
+
       } catch (e) {
         if (cancelled) return;
         setVideoSrc(undefined);
