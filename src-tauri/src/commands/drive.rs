@@ -3,6 +3,7 @@ use tokio::net::TcpListener;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tauri::Emitter;
 
 use crate::db::{self, DbState};
 use crate::parser::{ParsedCourse, ParsedSection, ParsedLesson, ParsedResource, ResourceType, Confidence};
