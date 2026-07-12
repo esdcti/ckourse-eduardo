@@ -18,7 +18,7 @@ Seu media player não sabe o que "Seção 4 - Aula 12" significa. Seu gerenciado
 
 ## Funcionalidades
 
-### ✅ v1.10 — Atual
+### ✅ v1.11 — Atual
 - 🧠 **Sincronismo Inteligente (Smart Merge)** — Ckourse agora é verdadeiramente cross-device! Ao abrir o aplicativo, ele detecta alterações na nuvem e mescla de forma inteligente com o seu banco local sem destruir seu progresso offline.
 - ⚡ **Sincronização Invisível** — O app envia seu progresso pro Google Drive silenciosamente 15 segundos após você fazer qualquer alteração, e imediatamente se você fechar o aplicativo. Zero perda de dados!
 

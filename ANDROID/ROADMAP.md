@@ -1,6 +1,6 @@
 # Roadmap — Ckourse Mobile (Android)
 
-> **ATUALIZAÇÃO (v1.10)**: A versão Android já é funcional e foi lançada! A estratégia de acessar arquivos locais via SAF (Fase 3) foi suspensa em favor da **Integração com Google Drive + TCP Proxy Local**, que permitiu entregar uma experiência de streaming na nuvem impecável e sem atrito no mobile antes do previsto.
+> **ATUALIZAÇÃO (v1.11)**: A versão Android já é funcional e foi lançada! A estratégia de acessar arquivos locais via SAF (Fase 3) foi suspensa em favor da **Integração com Google Drive + TCP Proxy Local**, que permitiu entregar uma experiência de streaming na nuvem impecável e sem atrito no mobile antes do previsto.
 
 Plano original de desenvolvimento organizado em fases incrementais.
 

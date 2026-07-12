@@ -18,7 +18,7 @@ Your media player doesn't know what "Section 4 - Lesson 12" means. Your file man
 
 ## Features
 
-### ✅ v1.10 — Current
+### ✅ v1.11 — Current
 - 🧠 **Smart Merge** — Ckourse is now truly cross-device! When opening the app, it detects cloud changes and smartly merges them with your local database without destroying offline progress.
 - ⚡ **Invisible Sync** — The app silently sends your progress to Google Drive 15 seconds after any change, and immediately on close. Zero data loss!
 

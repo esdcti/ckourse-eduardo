@@ -47,7 +47,7 @@ Plano de evolução focado em uso para **cursos de TI** (programação, DevOps, 
 | 14 | 🎯 Modo foco | Esconde header + sidebar do currículo, maximiza o vídeo |
 | 15 | 🎬 Importar YouTube | Tab "YouTube" na importação — URL → yt-dlp → progresso visual em tempo real → parser → curso importado |
 
-### v1.8.x - v1.10.x (Nuvem, Mobile e Estabilidade)
+### v1.8.x - v1.11.x (Nuvem, Mobile e Estabilidade)
 | # | Feature | Descrição |
 |---|---------|-----------|
 | 16 | ☁️ Integração Google Drive | OAuth nativo, importação de pastas direto da nuvem sem baixar nada |
