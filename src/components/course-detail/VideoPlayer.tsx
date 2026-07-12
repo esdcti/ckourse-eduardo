@@ -229,7 +229,12 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     const path = lesson.videoPath;
 
     if (!path.startsWith("gdrive://")) {
-      setVideoSrc(convertFileSrc(path, "stream"));
+      (async () => {
+        if (cancelled) return;
+        const platform = await getRuntimePlatform();
+        const protocol = platform === "android" || platform === "ios" ? "asset" : "stream";
+        if (!cancelled) setVideoSrc(convertFileSrc(path, protocol));
+      })();
       return;
     }
 
@@ -247,7 +252,8 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
           setPreparing(true);
           const localPath = await cacheDriveVideo(fileId);
           if (cancelled) return;
-          setVideoSrc(convertFileSrc(localPath, "stream"));
+          // Use Tauri's native asset protocol on mobile to completely bypass Rust IPC buffer limits and ExoPlayer chunking bugs
+          setVideoSrc(convertFileSrc(localPath, "asset"));
         } else {
           setVideoSrc(convertFileSrc(fileId, "gdrive"));
         }
