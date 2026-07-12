@@ -615,7 +615,19 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   // Sync isFullscreen state with DOM fullscreen changes
   useEffect(() => {
     const handleChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFull = !!document.fullscreenElement;
+      setIsFullscreen(isFull);
+
+      // Lock orientation to landscape on mobile when entering fullscreen
+      try {
+        if (isFull && window.screen?.orientation?.lock) {
+          window.screen.orientation.lock("landscape").catch(() => {});
+        } else if (!isFull && window.screen?.orientation?.unlock) {
+          window.screen.orientation.unlock();
+        }
+      } catch (e) {
+        // Ignore errors if API is unsupported
+      }
     };
     document.addEventListener("fullscreenchange", handleChange);
     return () => document.removeEventListener("fullscreenchange", handleChange);
@@ -821,7 +833,10 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   return (
     <div
       ref={containerRef}
-      className="group/player relative overflow-hidden rounded-xl border border-border bg-black"
+      className={cn(
+        "group/player relative bg-black",
+        isFullscreen ? "h-screen w-screen" : "overflow-hidden rounded-xl border border-border"
+      )}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ cursor: showControls ? "default" : "none" }}
@@ -829,7 +844,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
       <video
         ref={videoRef}
         key={lesson?.id}
-        className="aspect-video w-full bg-black"
+        className={cn("w-full bg-black object-contain", isFullscreen ? "h-full" : "aspect-video")}
         src={videoSrc}
         muted={isMuted}
         onTimeUpdate={handleTimeUpdate}

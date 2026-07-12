@@ -6,6 +6,18 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ---
 
+## [1.10.36] - 2026-07-12
+
+### Adicionado
+- **Proxy TCP Nativo de Vídeo (Mobile/Desktop)**: Reescrevemos o mecanismo de interceptação de vídeo para usar um servidor HTTP TCP puro em Rust (127.0.0.1) ao invés do protocolo `asset://` do Tauri. Isso remove qualquer dependência do motor de rede falho da WebView do Android (`WebResourceResponse`), permitindo que o ExoPlayer gerencie os requests (Range) perfeitamente de forma nativa e burlando de vez os crashes e engasgos.
+- O carregamento de vídeos direto da nuvem não exige mais o download total (bloqueante) do arquivo no Mobile.
+
+### Corrigido
+- Bugs de Typescript não permitindo compilar após a remoção de variáveis obsoletas de vídeo (como `cacheDriveVideo`).
+- Build do Github Actions da versão Android configurada para forçar tag de releases limpas.
+
+---
+
 ## [1.10.19] - 2026-07-09
 
 ### Adicionado
