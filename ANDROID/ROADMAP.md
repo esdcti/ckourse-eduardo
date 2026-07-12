@@ -1,6 +1,8 @@
 # Roadmap — Ckourse Mobile (Android)
 
-Plano de desenvolvimento organizado em fases incrementais.
+> **ATUALIZAÇÃO (v1.10)**: A versão Android já é funcional e foi lançada! A estratégia de acessar arquivos locais via SAF (Fase 3) foi suspensa em favor da **Integração com Google Drive + TCP Proxy Local**, que permitiu entregar uma experiência de streaming na nuvem impecável e sem atrito no mobile antes do previsto.
+
+Plano original de desenvolvimento organizado em fases incrementais.
 
 ---
 
@@ -10,12 +12,12 @@ Fazer o app desktop rodar no Android sem novas features.
 
 | # | Tarefa | Complexidade | Status |
 |---|--------|-------------|--------|
-| 1.1 | Configurar ambiente Android (SDK, NDK, emulador) | Baixa | ⬜ |
-| 1.2 | Rodar `tauri android init` e resolver erros | Baixa | ⬜ |
-| 1.3 | Fazer o app abrir no emulador (mesmo que quebrado) | Média | ⬜ |
-| 1.4 | Resolver incompatibilidades do video_protocol.rs no Android | Alta | ⬜ |
-| 1.5 | Confirmar que SQLite funciona no Android | Baixa | ⬜ |
-| 1.6 | Testar navegação básica (rotas funcionando) | Baixa | ⬜ |
+| 1.1 | Configurar ambiente Android (SDK, NDK, emulador) | Baixa | ✅ |
+| 1.2 | Rodar `tauri android init` e resolver erros | Baixa | ✅ |
+| 1.3 | Fazer o app abrir no emulador (mesmo que quebrado) | Média | ✅ |
+| 1.4 | Resolver incompatibilidades do video_protocol.rs no Android | Alta | ✅ (Resolvido via TCP Proxy Rust) |
+| 1.5 | Confirmar que SQLite funciona no Android | Baixa | ✅ |
+| 1.6 | Testar navegação básica (rotas funcionando) | Baixa | ✅ |
 
 ---
 
@@ -25,13 +27,13 @@ Adaptar a UI para funcionar bem em telas touch.
 
 | # | Tarefa | Complexidade | Status |
 |---|--------|-------------|--------|
-| 2.1 | Criar layout mobile (bottom tabs: Home, Progresso, Notas, Config) | Média | ⬜ |
-| 2.2 | Adaptar Dashboard para grid 1-2 colunas | Baixa | ⬜ |
-| 2.3 | Adaptar CourseDetail para tela vertical (vídeo em cima, curriculum em baixo) | Média | ⬜ |
-| 2.4 | Adaptar player de vídeo (controles touch-friendly) | Média | ⬜ |
-| 2.5 | Remover elementos desktop-only (sidebar, drag region, fullscreen toggle) | Baixa | ⬜ |
-| 2.6 | Testar gestos (swipe back, scroll, pinch) | Baixa | ⬜ |
-| 2.7 | Safe area insets (notch, barra de navegação) | Baixa | ⬜ |
+| 2.1 | Criar layout mobile (bottom tabs: Home, Progresso, Notas, Config) | Média | ✅ (AppShell responsivo) |
+| 2.2 | Adaptar Dashboard para grid 1-2 colunas | Baixa | ✅ |
+| 2.3 | Adaptar CourseDetail para tela vertical (vídeo em cima, curriculum em baixo) | Média | ✅ |
+| 2.4 | Adaptar player de vídeo (controles touch-friendly) | Média | ✅ |
+| 2.5 | Remover elementos desktop-only (sidebar, drag region, fullscreen toggle) | Baixa | ✅ |
+| 2.6 | Testar gestos (swipe back, scroll, pinch) | Baixa | ✅ |
+| 2.7 | Orientação de Tela (Landscape no vídeo) | Baixa | ✅ (API de Screen Orientation) |
 
 ---
 

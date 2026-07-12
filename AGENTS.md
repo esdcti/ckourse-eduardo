@@ -35,6 +35,7 @@ Este documento define as regras e convenções que agentes de IA devem seguir ao
 | Banco de dados | SQLite (rusqlite) | Runtime: AppData ou modo portátil |
 | Estilização | Tailwind CSS v4 | Classes inline nos componentes |
 | Ícones | Phosphor Icons | `@phosphor-icons/react` |
+| Mobile Proxy | TCP HTTP Server (Rust) | Para bypass do WebView no Android |
 
 ---
 
@@ -97,8 +98,9 @@ src-tauri/src/
 ├── parser.rs         # Parser de pastas de curso
 ├── portable.rs       # Lógica de modo portátil
 ├── subtitle.rs       # Manipulação de legendas
-├── video_protocol.rs # Streaming de vídeo local
-└── gdrive_protocol.rs# Proxy de streaming para o Google Drive
+├── tcp_proxy.rs      # Servidor HTTP local (127.0.0.1) para burlar limites do Android WebView em streams de vídeo
+├── video_protocol.rs # Streaming local via protocolo customizado (obsoleto para cloud)
+└── gdrive_protocol.rs# Proxy de requests do Google Drive
 ```
 
 ---

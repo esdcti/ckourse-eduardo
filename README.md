@@ -25,7 +25,8 @@ Seu media player não sabe o que "Seção 4 - Aula 12" significa. Seu gerenciado
 ### ✅ Funcionalidades Principais
 - 📁 **Importação inteligente de pastas** — aponte o Ckourse para qualquer pasta de curso e ele analisa a estrutura automaticamente
 - 🎬 **Importação do YouTube** — cole a URL de uma playlist, acompanhe o progresso em tempo real (vídeo X/Y + barra animada) e importe como curso (requer yt-dlp + ffmpeg)
-- ☁️ **Integração Google Drive (Streaming)** — vincule sua conta do Google via OAuth e importe pastas de cursos inteiras diretamente da nuvem, sem ocupar espaço no HD!
+- ☁️ **Integração Google Drive (Streaming)** — vincule sua conta do Google via OAuth e importe pastas de cursos inteiras diretamente da nuvem. Seu progresso viaja com você via **Smart Sync** (Sincronismo Inteligente).
+- 📱 **Mobile & Desktop** — Ckourse roda nativamente no Windows, macOS, Linux, e também no **Android** com sincronismo de progresso e streaming liso direto da nuvem via nosso proxy TCP customizado.
 - ▶️ **Player de vídeo integrado** — player HTML5 com legendas, autoplay, PiP e navegação por timestamp
 - ⌨️ **Atalhos de teclado completos** — Space, N/P (próxima/anterior), F (fullscreen), M (mute), J/L (skip), C (legendas)
 - 📊 **Rastreamento de progresso** — conclusão por aula, barra de progresso, retome de onde parou
@@ -167,8 +168,9 @@ ckourse/
 │   │   ├── parser.rs         # Parser de pasta de cursos
 │   │   ├── portable.rs       # Lógica de modo portátil
 │   │   ├── subtitle.rs       # Manipulação de legendas
-│   │   ├── video_protocol.rs # Streaming de vídeo local
-│   │   ├── gdrive_protocol.rs# Proxy de streaming para o Google Drive
+│   │   ├── tcp_proxy.rs      # Proxy HTTP local para servir vídeos burlado WebView limits
+│   │   ├── video_protocol.rs # Streaming local via protocolo customizado
+│   │   ├── gdrive_protocol.rs# Proxy de requisições Drive API
 │   │   └── commands/         # courses.rs, lessons.rs, notes.rs,
 │   │                         #   settings.rs, portable.rs, youtube.rs, drive.rs
 │   └── tauri.conf.json       # Configuração do Tauri
@@ -201,9 +203,9 @@ Seus cursos podem estar em qualquer pasta do cartão. O progresso, notas e confi
 
 O Ckourse possui integração oficial com a API do Google Drive via OAuth2. 
 
-**Cursos na Nuvem (Streaming):** Nas configurações, clique em "Conectar Conta do Google". Depois disso, você pode colar o link de qualquer pasta do seu Drive e o Ckourse vai importar todos os vídeos. O aplicativo possui um Proxy Nativo em Rust (`gdrive://`) que permite o streaming dos arquivos MP4 direto da nuvem (semelhante à Netflix), burlando a necessidade de baixar o vídeo inteiro e contornando os limites anti-robô da plataforma.
+**Cursos na Nuvem (Streaming):** Nas configurações, clique em "Conectar Conta do Google". Depois disso, você pode colar o link de qualquer pasta do seu Drive e o Ckourse vai importar todos os vídeos. O aplicativo possui um Proxy TCP Nativo em Rust rodando no próprio dispositivo (127.0.0.1) que converte requisições web para streams perfeitos do Google Drive. Ele garante estabilidade absoluta na reprodução (inclusive no WebView do Android), burlando a necessidade de baixar o vídeo inteiro e os limites anti-robô da plataforma.
 
-**Banco de Dados na Nuvem (Sync via Desktop):** Opcionalmente, você pode ir em Configurações → Biblioteca → "Alterar local" e apontar o `ckourse.db` para a pasta raiz do seu *Google Drive para Desktop*. Com isso, você pode abrir o Ckourse em vários computadores e ter o progresso compartilhado. *(Nota: O backup nativo direto para a nuvem via API está em desenvolvimento nas próximas versões).*
+**Sincronismo Nuvem (Smart Sync):** O Ckourse é `offline-first` e possui um sistema avançado de mesclagem (Merge SQL). Quando você vincula a sua nuvem, o aplicativo vai fazer backup transparente do seu progresso pro Drive a cada alteração ou ao fechar. Se você abrir o Ckourse no celular ou em outro PC, ele baixa o banco mais atual e mescla os progressos sem apagar dados, garantindo zero perdas.
 
 ---
 

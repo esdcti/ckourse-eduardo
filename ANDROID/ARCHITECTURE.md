@@ -125,16 +125,17 @@ pub fn read_file(uri: &str) -> Result<Vec<u8>, String> {
 
 ## Video Playback no Android
 
-### Desktop (atual):
-- `video_protocol.rs` registra protocolo custom `stream://`
-- Serve bytes do arquivo direto do filesystem
+O Android WebView possui falhas críticas na implementação nativa de interceptação de requisições (`WebResourceResponse`). Ele lida extremamente mal com conexões parciais HTTP (Range Requests `206 Partial Content`), o que inviabiliza o carregamento de vídeos pesados no player HTML5 (`<video>`).
 
-### Mobile (adaptação):
-- Opção A: Servir via `convertFileSrc()` com content:// URI
-- Opção B: Copiar vídeo para cache temporário e servir de lá
-- Opção C: Plugin Tauri customizado que expõe um servidor HTTP local
+### A Solução Definitiva (TCP Proxy em Rust)
 
-**Decisão**: Opção A é a preferida (zero cópia), com fallback pra B se houver problemas de compatibilidade com WebView.
+Para contornar o WebView, abandonamos os esquemas `asset://` ou `convertFileSrc()` para vídeos. Em vez disso:
+1. O Backend em Rust inicia um **Servidor TCP HTTP Local** em uma porta dinâmica (via `tcp_proxy.rs`).
+2. O servidor proxy utiliza streams assíncronos (`tokio`) e o ecossistema `hyper` para processar perfeitamente as requisições `Range` enviadas pelo ExoPlayer (o motor do Android sob a tag de vídeo).
+3. Seja um arquivo local (armazenado pelo SAF/cache) ou um streaming do Google Drive API, o proxy repassa os bytes respeitando os headers do protocolo HTTP nativamente.
+4. O Frontend React aponta a tag de vídeo para `http://127.0.0.1:<PORTA>/stream?id=...`.
+
+**Resultado**: O ExoPlayer roda os vídeos de forma nativa e robusta, suportando pulos instantâneos (seeks) e carregamentos parciais, sem qualquer crash de memória na WebView.
 
 ---
 

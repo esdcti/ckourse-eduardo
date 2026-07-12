@@ -47,6 +47,15 @@ Plano de evolução focado em uso para **cursos de TI** (programação, DevOps, 
 | 14 | 🎯 Modo foco | Esconde header + sidebar do currículo, maximiza o vídeo |
 | 15 | 🎬 Importar YouTube | Tab "YouTube" na importação — URL → yt-dlp → progresso visual em tempo real → parser → curso importado |
 
+### v1.8.x - v1.10.x (Nuvem, Mobile e Estabilidade)
+| # | Feature | Descrição |
+|---|---------|-----------|
+| 16 | ☁️ Integração Google Drive | OAuth nativo, importação de pastas direto da nuvem sem baixar nada |
+| 17 | 🧠 Sincronismo Inteligente (Smart Sync) | Sync `offline-first` via Drive. Banco de dados mesclado (Merge SQL) automaticamente |
+| 18 | 📱 Ckourse Mobile (Android) | Versão Android 100% funcional com interface responsiva e proxy TCP nativo para burlar limitações de vídeo |
+| 19 | 🌐 Proxy TCP em Rust | Servidor HTTP local (127.0.0.1) que substitui APIs nativas falhas e serve vídeos da nuvem perfeitamente no ExoPlayer |
+| 20 | 💾 API de Backup Segura | Checkpoint do cache WAL antes de restaurar bancos da nuvem, prevenindo perdas de sessão |
+
 ---
 
 ## 🟡 Próximas Features (v1.6+)
@@ -75,8 +84,7 @@ Features ambiciosas que transformam o app.
 | 24 | **Resumo com IA (Ollama)** | Alta | Resumir aula a partir da transcrição |
 | 25 | **Flashcards de revisão** | Alta | Cards gerados a partir das notas com repetição espaçada |
 | 26 | **Leitor de código integrado** | Média | Abrir arquivos de código do curso com syntax highlighting |
-| 27 | **Sincronização entre devices** | Alta | Progresso sync via pasta na nuvem ou servidor |
-| 28 | **Certificados de conclusão** | Baixa | Gerar PDF ao terminar curso |
+| 27 | **Certificados de conclusão** | Baixa | Gerar PDF ao terminar curso |
 | 29 | **Gamificação expandida** | Média | Conquistas ("Maratonista: 10 aulas em 1 dia") |
 | 30 | **Plugin VS Code** | Alta | Extensão que mostra progresso e permite marcar aulas |
 
@@ -84,11 +92,11 @@ Features ambiciosas que transformam o app.
 
 ## 📱 Ckourse Mobile (Android)
 
-Projeto em planejamento para versão mobile. Documentação em [ANDROID/](./ANDROID/).
+Documentação em [ANDROID/](./ANDROID/).
 
-- Stack: Tauri 2 Mobile + React + Rust (shared com desktop)
-- Modelo: Freemium (2 cursos free / Pro lifetime R$29,90)
-- Status: Documentação completa, aguardando configuração do ambiente
+- **Status: Concluído e em Produção**. O app já possui compatibilidade plena com Android.
+- **Tech Stack**: Tauri 2 Mobile + React + Rust (90% de código compartilhado com desktop).
+- **Video Playback**: O streaming de mídias (locais ou da nuvem) funciona primorosamente graças ao nosso Proxy TCP Nativo implementado no Backend Rust, que alimenta o ExoPlayer local e evita as armadilhas comuns da WebView do Android.
 
 ---
 
