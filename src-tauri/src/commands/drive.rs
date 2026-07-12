@@ -774,6 +774,9 @@ pub async fn cache_drive_video(
     let mut refreshed = false;
     let mut attempts: u32 = 0;
     const MAX_ATTEMPTS: u32 = 4;
+    
+    // Announce start
+    let _ = app.emit("video-download-progress", 0.0);
 
     loop {
         let range = format!("bytes={}-{}", offset, offset + CHUNK - 1);
@@ -846,6 +849,11 @@ pub async fn cache_drive_video(
         if n > 0 {
             file.write_all(&bytes).await.map_err(|e| e.to_string())?;
             offset += n;
+            
+            if let Some(t) = total {
+                let progress = (offset as f64 / t as f64).clamp(0.0, 1.0);
+                let _ = app.emit("video-download-progress", progress);
+            }
         }
 
         // Stop conditions.
@@ -872,8 +880,11 @@ pub async fn cache_drive_video(
         file_id, offset
     ));
 
-    // Move the MP4 index (moov) to the front so Android's WebView can play it.
-    faststart_in_place(&final_path);
+    // Disable faststart_in_place: ExoPlayer handles trailing moov fine on local files (asset://)
+    // and the Rust rewrite might be corrupting some audio packets, causing PIPELINE_ERROR_DECODE.
+    // faststart_in_place(&final_path);
+
+    let _ = app.emit("video-download-progress", 1.0);
 
     Ok(final_path.to_string_lossy().to_string())
 }

@@ -8,6 +8,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import {
   PlayIcon as Play,
   PauseIcon as Pause,
@@ -216,10 +217,24 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
 
   const [videoSrc, setVideoSrc] = useState<string | undefined>();
   const [preparing, setPreparing] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    listen<number>("video-download-progress", (event) => {
+      setDownloadProgress(event.payload);
+    }).then(u => {
+      unlisten = u;
+    });
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     setVideoError(null);
+    setDownloadProgress(null);
 
     if (!lesson) {
       setVideoSrc(undefined);
@@ -262,7 +277,10 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
         setVideoSrc(undefined);
         setVideoError(`prepare failed: ${String(e)}`);
       } finally {
-        if (!cancelled) setPreparing(false);
+        if (!cancelled) {
+          setPreparing(false);
+          setDownloadProgress(null);
+        }
       }
     })();
 
@@ -776,7 +794,9 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
             <>
               <div className="size-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-primary" />
               <p className="font-sans text-sm text-muted-foreground">
-                {t.preparingVideo}
+                {downloadProgress !== null
+                  ? `Baixando vídeo... ${Math.round(downloadProgress * 100)}%`
+                  : t.preparingVideo}
               </p>
             </>
           ) : videoError ? (
